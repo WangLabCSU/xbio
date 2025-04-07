@@ -106,9 +106,10 @@ keggdb_download <- function(database, organism) {
 #' molecular weights. If identifiers included are not known to KEGG, the
 #' results will not contain any information about those identifiers.
 #' @inheritParams KEGGREST::keggFind
+#' @importFrom rlang arg_match0
 keggdb_find <- function(database, ..., option = NULL) {
     rlang::check_installed("KEGGREST", "to query from KEGG")
-    database <- rlang::arg_match0(database, KEGGREST::listDatabases())
+    database <- arg_match0(database, KEGGREST::listDatabases())
     query <- as.character(unlist(rlang::list2(...), use.names = FALSE))
     if (is.null(option)) {
         KEGGREST::keggFind(database = database, query = query)
