@@ -25,12 +25,13 @@ keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
         database, c("organism", "gsea", KEGGREST::listDatabases())
     )
     if (identical(database, "organism")) {
-        description <- "{.field organism} database in KEGG"
         if (!is.null(organism)) {
             cli::cli_abort(paste(
-                "{.arg organism} cannot be used for", description
+                "{.arg organism} cannot be used for",
+                "{.field organism} database"
             ))
         }
+        description <- "{.field organism} database in KEGG"
         cachedir <- dbdir("KEGG")
         cachefile <- "organism"
     } else {
