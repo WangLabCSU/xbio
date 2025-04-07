@@ -69,20 +69,25 @@ keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
 
 keggdb_download <- function(database, organism) {
     if (identical(database, "organism")) {
-        apply(KEGGREST::keggList("organism"), 2L, identity, simplify = FALSE)
+        out <- apply(
+            KEGGREST::keggList("organism"), 2L, identity,
+            simplify = FALSE
+        )
+        structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
     } else if (identical(database, "gsea")) {
         pathway2genes <- KEGGREST::keggLink(organism, "pathway")
         pathways <- sub("^[^:]+:", "", names(pathway2genes), fixed = TRUE)
         descriptions <- KEGGREST::keggList("pathway", organism)
         genes <- sub("^[^:]+:", "", pathway2genes, fixed = TRUE)
-        data_frame(
+        new_data_frame(list(
             pathways = pathways,
             descriptions = descriptions[pathways],
             genes = genes
-        )
+        ), class = sprintf("%s_kegg_gsea", pkg_nm()))
     } else {
         items <- KEGGREST::keggList(database, organism)
-        keggdb_get0(names(items))
+        out <- keggdb_get0(names(items))
+        structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
     }
 }
 
