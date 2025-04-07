@@ -34,18 +34,7 @@ keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
         cachedir <- dbdir("KEGG")
         cachefile <- "organism"
     } else {
-        if (is.null(organism)) {
-            organism <- organism %||% "hsa"
-        } else {
-            available_organisms <- keggdb("organism", verbose = FALSE)
-            available_organisms <- unique(c(
-                .subset2(available_organisms, 1L),
-                .subset2(available_organisms, 2L)
-            ))
-            if (!any(organism == available_organisms)) {
-                cli::cli_abort("Cannot found {.field {organism}} organism")
-            }
-        }
+        organism <- kegg_check_organism(organism)
         if (identical(database, "gsea")) {
             description <- sprintf(
                 "{.field %s} pathways for {.field %s} organism in KEGG",
@@ -65,6 +54,24 @@ keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
         cachedir = cachedir, cachefile = cachefile, strategy = strategy,
         description = description, verbose = verbose
     )
+}
+
+#' @importFrom rlang caller_call
+kegg_check_organism <- function(organism, call = caller_call()) {
+    if (is.null(organism)) {
+        organism <- "hsa"
+    } else {
+        available_organisms <- keggdb("organism", verbose = FALSE)
+        if (any(tcodes <- organism == .subset2(available_organisms, 1L))) {
+            organism <- .subset2(available_organisms, 2L)[which(tcodes)]
+        } else if (!any(organism == .subset2(available_organisms, 2L))) {
+            cli::cli_abort(
+                "Cannot found {.field {organism}} organism",
+                call = call
+            )
+        }
+    }
+    organism
 }
 
 keggdb_download <- function(database, organism) {
