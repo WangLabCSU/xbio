@@ -20,7 +20,7 @@
 #' @importFrom rlang arg_match0
 #' @export
 keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
-    rlang::check_installed("KEGGREST", "to download from KEGG")
+    check_bioc_installed("KEGGREST", "to download from KEGG")
     database <- arg_match0(
         database, c("organism", "gsea", KEGGREST::listDatabases())
     )
@@ -108,7 +108,7 @@ keggdb_download <- function(database, organism) {
 #' @inheritParams KEGGREST::keggFind
 #' @importFrom rlang arg_match0
 keggdb_find <- function(database, ..., option = NULL) {
-    rlang::check_installed("KEGGREST", "to query from KEGG")
+    check_bioc_installed("KEGGREST", "to query from KEGG")
     database <- arg_match0(database, KEGGREST::listDatabases())
     query <- as.character(unlist(rlang::list2(...), use.names = FALSE))
     if (is.null(option)) {
@@ -123,7 +123,7 @@ keggdb_find <- function(database, ..., option = NULL) {
 #' @param ... One or more KEGG identifiers.
 #' @inheritParams KEGGREST::keggGet
 keggdb_get <- function(..., option = NULL) {
-    rlang::check_installed("KEGGREST", "to query from KEGG")
+    check_bioc_installed("KEGGREST", "to query from KEGG")
     query <- as.character(unlist(rlang::list2(...), use.names = FALSE))
     keggdb_get0(query, option = option)
 }
