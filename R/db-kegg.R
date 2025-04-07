@@ -61,6 +61,7 @@ kegg_check_organism <- function(organism, call = caller_call()) {
     if (is.null(organism)) {
         organism <- "hsa"
     } else {
+        assert_string(organism, allow_empty = FALSE, call = call)
         available_organisms <- keggdb("organism", verbose = FALSE)
         if (any(tcodes <- organism == .subset2(available_organisms, 1L))) {
             organism <- .subset2(available_organisms, 2L)[which(tcodes)]
