@@ -77,10 +77,10 @@ kegg_check_organism <- function(organism, call = caller_call()) {
 
 keggdb_download <- function(database, organism) {
     if (identical(database, "organism")) {
-        out <- apply(
-            KEGGREST::keggList("organism"), 2L, identity,
-            simplify = FALSE
-        )
+        out <- KEGGREST::keggList("organism")
+        # https://stackoverflow.com/questions/6819804/convert-a-matrix-to-a-list-of-column-vectors
+        # For performances
+        out <- lapply(seq_len(ncol(out)), function(i) out[, i, drop = TRUE])
         structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
     } else if (identical(database, "gsea")) {
         pathway2genes <- KEGGREST::keggLink(organism, "pathway")
