@@ -2,7 +2,9 @@
 #'
 #' @param database A KEGG database (list available via
 #' [`listDatabases()`][KEGGREST::listDatabases]). In addition, `"organism"` can
-#' be used to get all available organisms in KEGG database.
+#' be used to retrieve all available organisms in the KEGG database, and
+#' `"genesets"` can be used to obtain gene sets for functional enrichment
+#' analysis.
 #' @param organism A KEGG database (list available via
 #' `keggdb("organism")$organism`.
 #' @param strategy Character string specifying how to access the database and
@@ -22,7 +24,7 @@
 keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
     check_bioc_installed("KEGGREST", "to download from KEGG")
     database <- arg_match0(
-        database, c("organism", "gsea", KEGGREST::listDatabases())
+        database, c("organism", "genesets", KEGGREST::listDatabases())
     )
     if (identical(database, "organism")) {
         if (!is.null(organism)) {
@@ -36,9 +38,9 @@ keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
         cachefile <- "organism"
     } else {
         organism <- kegg_check_organism(organism)
-        if (identical(database, "gsea")) {
+        if (identical(database, "genesets")) {
             description <- sprintf(
-                "{.field %s} pathways for {.field %s} organism in KEGG",
+                "{.field %s} for {.field %s} organism in KEGG",
                 database, organism
             )
         } else {
@@ -83,16 +85,16 @@ keggdb_download <- function(database, organism) {
         # For performances
         out <- lapply(seq_len(ncol(out)), function(i) out[, i, drop = TRUE])
         structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
-    } else if (identical(database, "gsea")) {
+    } else if (identical(database, "genesets")) {
         pathway2genes <- KEGGREST::keggLink(organism, "pathway")
-        pathways <- sub("^[^:]+:", "", names(pathway2genes), fixed = TRUE)
+        pathways <- sub("^[^:]+:", "", names(pathway2genes))
         descriptions <- KEGGREST::keggList("pathway", organism)
-        genes <- sub("^[^:]+:", "", pathway2genes, fixed = TRUE)
+        genes <- sub("^[^:]+:", "", pathway2genes)
         new_data_frame(list(
             pathways = pathways,
             descriptions = descriptions[pathways],
             genes = genes
-        ), class = sprintf("%s_kegg_gsea", pkg_nm()))
+        ), class = sprintf("%s_kegg_genesets", pkg_nm()))
     } else {
         items <- KEGGREST::keggList(database, organism)
         out <- keggdb_get0(names(items))

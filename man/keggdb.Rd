@@ -9,7 +9,9 @@ keggdb(database, organism = NULL, strategy = NULL, verbose = TRUE)
 \arguments{
 \item{database}{A KEGG database (list available via
 \code{\link[KEGGREST:listDatabases]{listDatabases()}}). In addition, \code{"organism"} can
-be used to get all available organisms in KEGG database.}
+be used to retrieve all available organisms in the KEGG database, and
+\code{"genesets"} can be used to obtain gene sets for functional enrichment
+analysis.}
 
 \item{organism}{A KEGG database (list available via
 \code{keggdb("organism")$organism}.}
