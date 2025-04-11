@@ -103,7 +103,18 @@ gseaMultilevel <- new_class(
             default = 1e-50,
             allow_infinite = FALSE
         )
-    )
+    ),
+    constructor = function(sample_size = 101L, eps = 1e-50,
+                           nperm = 1L, score_type = "std", threads = 1L, exponential = 1) {
+        new_object(
+            gseaSimple(
+                nperm = nperm, score_type = score_type,
+                threads = threads, exponential = exponential
+            ),
+            sample_size = sample_size,
+            eps = eps
+        )
+    }
 )
 
 method(run_gsea, gseaMultilevel) <- function(method, object, gs, params) {
