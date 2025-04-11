@@ -1,12 +1,12 @@
-fea_dir <- function(which) {
+enricher_dir <- function(which) {
     dir_create(tools::R_user_dir(pkg_nm(), which), recursive = TRUE)
 }
 
-data_dir <- function() fea_dir("data")
+data_dir <- function() enricher_dir("data")
 
-cache_dir <- function() fea_dir("cache")
+cache_dir <- function() enricher_dir("cache")
 
-config_dir <- function() fea_dir("config")
+config_dir <- function() enricher_dir("config")
 
 path_ext_remove <- function(path) {
     sub("\\.[[:alnum:]]*$", "", path, perl = TRUE)
