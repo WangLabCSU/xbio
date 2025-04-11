@@ -21,3 +21,17 @@ Suggests:
     KEGGREST
 URL: https://github.com/Yunuuuu/enricher
 BugReports: https://github.com/Yunuuuu/enricher/issues
+Collate: 
+    'db-.R'
+    'db-kegg.R'
+    'enricher-package.R'
+    'genesets.R'
+    'utils-S7.R'
+    'gsea.R'
+    'import-standalone-assert.R'
+    'import-standalone-obj-type.R'
+    'import-standalone-pkg.R'
+    'import-standalone-tibble.R'
+    'utils-file.R'
+    'utils.R'
+    'zzz.R'
