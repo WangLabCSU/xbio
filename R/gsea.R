@@ -44,7 +44,7 @@ gseaSimple <- new_class(
             },
             default = 1L
         ),
-        scoreType = prop_match(c("std", "pos", "neg")),
+        score_type = prop_match(c("std", "pos", "neg")),
         threads = prop_number_whole(
             setter = function(self, value) {
                 if (is.numeric(value)) value <- as.integer(value)
@@ -74,7 +74,7 @@ method(run_gsea, gseaSimple) <- function(method, object, gs, params) {
         object,
         minSize = 1,
         maxSize = length(object),
-        scoreType = method@method,
+        scoreType = method@score_type,
         nperm = method@nperm,
         nproc = method@threads,
         gseaParam = method@exponential
@@ -115,7 +115,7 @@ method(run_gsea, gseaMultilevel) <- function(method, object, gs, params) {
         maxSize = length(object),
         sampleSize = method@sample_size,
         eps = method@eps,
-        scoreType = method@method,
+        scoreType = method@score_type,
         nPermSimple = method@nperm,
         nproc = method@threads,
         gseaParam = method@exponential
