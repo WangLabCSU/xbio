@@ -16,16 +16,19 @@
 #' By default, `NULL` is used, which means read from cache if available;
 #' otherwise, download and cache the data.
 #'
+#' @param cache cache A string specifying the file path to read from or save to
+#' when using cache.
 #' @param verbose A single logical value indicates whether the process should be
 #' verbose.
 #' @return A list of contents for each entries.
 #' @importFrom rlang arg_match0
 #' @export
-keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
+keggdb <- function(database, organism = NULL, strategy = NULL, cache = NULL,
+                   verbose = TRUE) {
     check_bioc_installed("KEGGREST", "to download from KEGG")
-    database <- arg_match0(
-        database, c("organism", "genesets", KEGGREST::listDatabases())
-    )
+    database <- arg_match0(database, c(
+        "organism", "genesets", KEGGREST::listDatabases()
+    ))
     if (identical(database, "organism")) {
         if (!is.null(organism)) {
             cli::cli_abort(paste(
@@ -37,7 +40,7 @@ keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
         cachedir <- dbdir("KEGG")
         cachefile <- "organism"
     } else {
-        organism <- kegg_check_organism(organism)
+        organism <- check_organism(organism)
         if (identical(database, "genesets")) {
             description <- sprintf(
                 "{.field %s} for {.field %s} organism in KEGG",
@@ -54,28 +57,10 @@ keggdb <- function(database, organism = NULL, strategy = NULL, verbose = TRUE) {
     }
     db(
         keggdb_download, database, organism,
-        cachedir = cachedir, cachefile = cachefile, strategy = strategy,
+        strategy = strategy, cache = cache,
+        cachedir = cachedir, cachefile = cachefile,
         description = description, verbose = verbose
     )
-}
-
-#' @importFrom rlang caller_call
-kegg_check_organism <- function(organism, call = caller_call()) {
-    if (is.null(organism)) {
-        organism <- "hsa"
-    } else {
-        assert_string(organism, allow_empty = FALSE, call = call)
-        available_organisms <- keggdb("organism", verbose = FALSE)
-        if (any(tcodes <- organism == .subset2(available_organisms, 1L))) {
-            organism <- .subset2(available_organisms, 2L)[which(tcodes)]
-        } else if (!any(organism == .subset2(available_organisms, 2L))) {
-            cli::cli_abort(
-                "Cannot found {.field {organism}} organism",
-                call = call
-            )
-        }
-    }
-    organism
 }
 
 keggdb_download <- function(database, organism) {
@@ -101,6 +86,7 @@ keggdb_download <- function(database, organism) {
         structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
     }
 }
+getExportedValue("org.Hs.eg.db", "org.Hs.eg.db")
 
 #' Finds entries in a given database
 #'
@@ -142,16 +128,14 @@ keggdb_get0 <- function(query, option = NULL) {
         total = length(out),
         clear = FALSE
     )
-    if (is.null(option)) {
-        for (idx in groups) {
+
+    for (idx in groups) {
+        if (is.null(option)) {
             out[idx] <- KEGGREST::keggGet(query[idx])
-            cli::cli_progress_update(inc = length(idx), id = progress_id)
-        }
-    } else {
-        for (idx in groups) {
+        } else {
             out[idx] <- KEGGREST::keggGet(query[idx], option = option)
-            cli::cli_progress_update(inc = length(idx), id = progress_id)
         }
+        cli::cli_progress_update(inc = length(idx), id = progress_id)
     }
     out
 }

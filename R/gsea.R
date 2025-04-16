@@ -1,39 +1,103 @@
-gsea <- function(object, gs, ..., method, min_size = NULL, max_size = NULL) {
-    dots <- rlang::dots_list(...,
-        .ignore_empty = "all", .named = NULL,
-        .homonyms = "error"
+gsea <- function(gs, object, method = NULL, ...,
+                 min_size = NULL, max_size = NULL) {
+    assert_s3_class(gs, "genesets")
+    assert_number_whole(min_size, min = 1, allow_null = TRUE)
+    assert_number_whole(min_size, min = 1, allow_null = TRUE)
+    method <- method %||% gseaMultilevel()
+    if (!all(keep <- list_sizes(gs) > 0L)) {
+        cli::cli_warn("Removing {sum(!keep)} empty gene set{?s}")
+        gs <- gs[keep]
+    }
+    gs <- lapply(gs, function(geneset) {
+        geneset[!is.na(geneset) & geneset != ""]
+    })
+    if (!all(keep <- list_sizes(gs) > 0L)) {
+        cli::cli_warn(paste(
+            "Removing {sum(!keep)} invalid gene set{?s}",
+            "(all are empty string or missing value)"
+        ))
+        gs <- gs[keep]
+    }
+    gs <- filter_genesets(
+        gs,
+        min_size = min_size,
+        max_size = max_size
     )
-    if (missing(method) || is.null(method)) {
-        if (S7_inherits(.subset2(dots, 1L), gseaMethod)) {
-            method <- .subset2(dots, 1L)
-            dots <- dots[-1L]
-        } else {
-            method <- gseaMultilevel()
-        }
+    if (length(gs) == 0L) {
+        cli::cli_abort("No gene sets {.arg gs} to use")
     }
-    if (!rlang::is_named2(dots)) {
-        cli::cli_abort("All input in {.arg ...} must be named")
-    }
-    assert_number_whole(min_size, min = 1, allow_null = TRUE)
-    assert_number_whole(min_size, min = 1, allow_null = TRUE)
-    object <- prerank(object)
-    gs <- genesets(gs)
-    gs <- filter_genesets(gs, min_size, max_size)
-    run_gsea(method, object = object, gs = gs, params = dots)
+    gsea0(object, method, ..., gs = gs)
 }
 
-prerank <- function(x, ...) UseMethod("prerank")
+filter_genesets <- function(gs, min_size, max_size) {
+    if (is.null(min_size) && is.null(max_size)) {
+        return(gs)
+    }
+    sizes <- list_sizes(gs)
+    if (!is.null(min_size) && !is.null(max_size)) {
+        keep <- sizes >= min_size & sizes <= max_size
+        out_pattern <- sprintf("[%d, %d]", min_size, max_size)
+    } else if (!is.null(min_size)) {
+        keep <- sizes >= min_size
+        out_pattern <- sprintf("[%d, Inf)", min_size)
+    } else {
+        keep <- sizes <= max_size
+        out_pattern <- sprintf("(0, %d]", max_size)
+    }
+    if (!all(keep)) {
+        cli::cli_warn(sprintf(
+            "Removing {sum(!keep)} gene set{?s} out of %s",
+            out_pattern
+        ))
+        gs <- gs[keep]
+    }
+    gs
+}
 
-run_gsea <- new_generic(
-    "run_gsea", "method",
-    function(method, object, gs, params) S7_dispatch()
+gsea0 <- new_generic(
+    "gsea0", c("object", "method"),
+    function(object, method, gs, ...) S7_dispatch()
 )
 
-gseaMethod <- new_class("gseaMethod")
+method(gsea0, list(class_any, class_any)) <- function(object, method, gs) {
+    cli::cli_abort(paste(
+        "No gsea method for the combined signature:",
+        "{.obj_type_friendly {object}} and {.obj_type_friendly {method}}"
+    ))
+}
 
+# Used to extract the `prerank` statistics
+gseaPrerank0 <- new_class("gseaPrerank0")
+
+method(gsea0, list(class_any, gseaPrerank0)) <- function(
+    object, method, gs) {
+    cli::cli_abort(paste(
+        "Cannot extract ranking statistics from",
+        "{.obj_type_friendly {object}}"
+    ))
+}
+
+method(gsea0, list(class_numeric, gseaPrerank0)) <- function(
+    object, method, gs) {
+    if (!rlang::is_named2(object)) {
+        cli::cli_abort("{.arg object} must be a named numeric")
+    }
+    object
+}
+
+# prerank method ---------------------------------------
+gseaPrerank <- new_class("gseaPrerank", gseaPrerank0)
+
+method(gsea0, list(class_any, gseaPrerank)) <- function(
+    object, method, gs) {
+    object <- gsea0(object, super(method, gseaPrerank0), gs)
+    # To-DO: use rust to implement
+}
+
+# fgsea method -----------------------------------------
 #' @include utils-S7.R
 gseaSimple <- new_class(
-    "gseaSimple", gseaMethod,
+    "gseaSimple", gseaPrerank0,
     properties = list(
         nperm = prop_number_whole(
             min = 1,
@@ -67,8 +131,10 @@ gseaSimple <- new_class(
     )
 )
 
-method(run_gsea, gseaSimple) <- function(method, object, gs, params) {
-    if (length(params) > 0L) props(method) <- params
+method(gsea0, list(class_any, gseaSimple)) <- function(
+    object, method, gs) {
+    check_bioc_installed("fgsea", "to use {.field gseaSimple} method")
+    object <- gsea0(object, super(method, gseaPrerank0), gs)
     fgsea::fgseaSimple(
         gs,
         object,
@@ -117,8 +183,10 @@ gseaMultilevel <- new_class(
     }
 )
 
-method(run_gsea, gseaMultilevel) <- function(method, object, gs, params) {
-    if (length(params) > 0L) props(method) <- params
+method(gsea0, list(class_any, gseaMultilevel)) <- function(
+    object, method, gs) {
+    check_bioc_installed("fgsea", "to use {.field gseaMultilevel} method")
+    object <- gsea0(object, super(method, gseaPrerank0), gs)
     fgsea::fgseaMultilevel(
         gs,
         object,

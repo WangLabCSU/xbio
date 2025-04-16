@@ -11,6 +11,25 @@ as_data_frame <- function(x) {
     }
 }
 
+#' @importFrom rlang caller_call
+check_organism <- function(organism, call = caller_call()) {
+    if (is.null(organism)) {
+        organism <- "hsa"
+    } else {
+        assert_string(organism, allow_empty = FALSE, call = call)
+        available_organisms <- keggdb("organism", verbose = FALSE)
+        if (any(tcodes <- organism == .subset2(available_organisms, 1L))) {
+            organism <- .subset2(available_organisms, 2L)[which(tcodes)]
+        } else if (!any(organism == .subset2(available_organisms, 2L))) {
+            cli::cli_abort(
+                "Cannot found {.field {organism}} organism",
+                call = call
+            )
+        }
+    }
+    organism
+}
+
 check_bioc_installed <- function(pkg, reason = NULL, ...) {
     rlang::check_installed(
         pkg,
@@ -43,4 +62,20 @@ check_bioc_installed <- function(pkg, reason = NULL, ...) {
             }
         }
     )
+}
+
+#' @keywords internal
+call_rust_method <- function(class, method, ...) {
+    call_rust_fn(sprintf("wrap__%s__%s", class, method), ...)
+}
+
+#' @keywords internal
+call_rust_fn <- function(.NAME, ...) {
+    # call the function
+    out <- .Call(.NAME, ...)
+
+    # propagate error from rust --------------------
+    if (!inherits(out, "extendr_result")) return(out) # styler: off
+    if (is.null(.subset2(out, "ok"))) stop(.subset2(out, "err"), call. = FALSE)
+    .subset2(out, "ok")
 }

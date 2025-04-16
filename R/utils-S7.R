@@ -55,9 +55,11 @@ prop_number_decimal <- function(getter = NULL, setter = NULL, ...,
 
 #' @importFrom S7 new_property class_double
 prop_number_whole <- function(getter = NULL, setter = NULL, ...,
-                              min = NULL, max = NULL, allow_na = FALSE) {
+                              min = NULL, max = NULL,
+                              allow_infinite = FALSE, allow_na = FALSE) {
     force(min)
     force(max)
+    force(allow_infinite)
     force(allow_na)
     new_property(
         class_integer,
@@ -71,7 +73,7 @@ prop_number_whole <- function(getter = NULL, setter = NULL, ...,
                 allow_decimal = FALSE,
                 min = min,
                 max = max,
-                allow_infinite = FALSE,
+                allow_infinite = allow_infinite,
                 allow_na = allow_na,
                 allow_null = FALSE
             ))) {

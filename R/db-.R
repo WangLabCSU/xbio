@@ -1,5 +1,5 @@
 #' @importFrom rlang caller_call arg_match0
-db <- function(download, ..., cachedir, cachefile, strategy, description,
+db <- function(download, ..., strategy, cache, cachedir, cachefile, description,
                verbose, arg_strategy = caller_arg(strategy),
                call = caller_call()) {
     if (!is.null(strategy)) {
@@ -9,6 +9,10 @@ db <- function(download, ..., cachedir, cachefile, strategy, description,
             arg_nm = arg_strategy,
             error_call = call
         )
+    }
+    if (!is.null(cache)) {
+        cachedir <- getwd()
+        cachefile <- cache
     }
     cached <- file_path(cachedir, cachefile, ext = "rds")
     if (is.null(strategy) || identical(strategy, "read")) {

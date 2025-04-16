@@ -11,6 +11,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Depends: 
+    R (>= 4.2)
 Imports: 
     cli,
     rlang,
@@ -22,10 +24,14 @@ Suggests:
 URL: https://github.com/Yunuuuu/enricher
 BugReports: https://github.com/Yunuuuu/enricher/issues
 Collate: 
+    'annohub.R'
     'db-.R'
+    'db-go.R'
     'db-kegg.R'
     'enricher-package.R'
-    'genesets.R'
+    'extendr-wrappers.R'
+    'genesets-class.R'
+    'genesets-methods.R'
     'utils-S7.R'
     'gsea.R'
     'import-standalone-assert.R'
@@ -35,3 +41,5 @@ Collate:
     'utils-file.R'
     'utils.R'
     'zzz.R'
+Config/rextendr/version: 0.3.1.9001
+SystemRequirements: Cargo (Rust's package manager), rustc

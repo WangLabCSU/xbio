@@ -4,7 +4,13 @@
 \alias{keggdb}
 \title{Get database from KEGG}
 \usage{
-keggdb(database, organism = NULL, strategy = NULL, verbose = TRUE)
+keggdb(
+  database,
+  organism = NULL,
+  strategy = NULL,
+  cache = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{database}{A KEGG database (list available via
@@ -26,6 +32,9 @@ whether to use caching:
 
 By default, \code{NULL} is used, which means read from cache if available;
 otherwise, download and cache the data.}
+
+\item{cache}{cache A string specifying the file path to read from or save to
+when using cache.}
 
 \item{verbose}{A single logical value indicates whether the process should be
 verbose.}
