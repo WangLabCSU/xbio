@@ -17,13 +17,6 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL) {
     )
 }
 
-validate_genesets <- function(gs) {
-    if (vec_duplicate_any(names(gs))) {
-        cli::cli_abort("the names of {.cls genesets} must be unique")
-    }
-    gs
-}
-
 #' @export
 vec_proxy.enricher_genesets <- function(x, ...) {
     descriptions <- attr(x, "descriptions", exact = TRUE)
