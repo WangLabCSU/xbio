@@ -14,12 +14,15 @@ RoxygenNote: 7.3.2
 Depends: 
     R (>= 4.2)
 Imports: 
+    AnnotationDbi,
     cli,
+    methods,
     rlang,
     S7,
     utils,
     vctrs (>= 0.5.0)
 Suggests:
+    AnnotationHub,
     KEGGREST
 URL: https://github.com/Yunuuuu/enricher
 BugReports: https://github.com/Yunuuuu/enricher/issues

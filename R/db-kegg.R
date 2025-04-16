@@ -86,7 +86,6 @@ keggdb_download <- function(database, organism) {
         structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
     }
 }
-getExportedValue("org.Hs.eg.db", "org.Hs.eg.db")
 
 #' Finds entries in a given database
 #'

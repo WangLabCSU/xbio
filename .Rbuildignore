@@ -9,3 +9,4 @@
 ^src/Makevars$
 ^src/Makevars\.win$
 ^README\.Rmd$
+^\.vscode$
