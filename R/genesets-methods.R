@@ -1,14 +1,11 @@
-genesets <- new_generic(
-    "genesets", "gs",
-    function(gs, ..., organism = NULL, strategy = NULL,
-             cache = NULL, verbose = TRUE) {
-        out <- S7_dispatch()
-    }
-)
+genesets <- function(gs, ..., organism = NULL, strategy = NULL,
+                     cache = NULL, verbose = TRUE) {
+    UseMethod("genesets")
+}
 
 map_genesets <- function(gs, key_source, key_target,
                          annodb = NULL, organism = NULL) {
-    assert_s3_class(gs, "genesets")
+    assert_s3_class(gs, "enricher_genesets")
     assert_string(key_source, allow_empty = FALSE)
     assert_string(key_target, allow_empty = FALSE)
     if (vec_size(gs) == 0L) return(gs) # styler: off
@@ -58,7 +55,7 @@ genesets_lapply <- function(gs, ...) {
 }
 
 #' @export
-genesets0.character <- function(gs, ...) {
+genesets.character <- function(gs, ...) {
     genesets_db <- vec_unique(gs)
     out <- vector("list", length(genesets_db))
     names(out) <- genesets_db

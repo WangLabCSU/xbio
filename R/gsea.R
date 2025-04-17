@@ -8,7 +8,7 @@ gsea <- function(gs, object, method = NULL, ...,
         cli::cli_warn("Removing {sum(!keep)} empty gene set{?s}")
         gs <- gs[keep]
     }
-    gs <- lapply(gs, function(geneset) {
+    gs <- genesets_lapply(gs, function(geneset) {
         geneset[!is.na(geneset) & geneset != ""]
     })
     if (!all(keep <- list_sizes(gs) > 0L)) {
@@ -23,7 +23,7 @@ gsea <- function(gs, object, method = NULL, ...,
         min_size = min_size,
         max_size = max_size
     )
-    if (length(gs) == 0L) {
+    if (vec_size(gs) == 0L) {
         cli::cli_abort("No gene sets {.arg gs} to use")
     }
     gsea0(object, method, ..., gs = gs)
