@@ -28,25 +28,24 @@ annohub <- function(..., version = NULL, hub = NULL, cache = NULL,
             ))
         }
     }
-    hub_namespace <- function(fn) from_namespace("AnnotationHub", fn)
-    url <- hub %||% hub_namespace("getAnnotationHubOption")("URL")
-    cache <- cache %||% hub_namespace("getAnnotationHubOption")("CACHE")
-    proxy <- proxy %||% hub_namespace("getAnnotationHubOption")("PROXY")
-    local <- local %||% hub_namespace("getAnnotationHubOption")("LOCAL")
-    db_path <- hub_namespace(".create_cache")(
+    url <- hub %||% AnnotationHub::getAnnotationHubOption("URL")
+    cache <- cache %||% AnnotationHub::getAnnotationHubOption("CACHE")
+    proxy <- proxy %||% AnnotationHub::getAnnotationHubOption("PROXY")
+    localHub <- localHub %||% AnnotationHub::getAnnotationHubOption("LOCAL")
+    db_path <- annohub_namespace(".create_cache")(
         "AnnotationHub",
         url = url, cache, proxy, local,
-        ask = hub_namespace("getAnnotationHubOption")("ASK")
+        ask = AnnotationHub::getAnnotationHubOption("ASK")
     )
     if (!local) {
         rlang::try_fetch(
             {
                 dates <- as.POSIXlt(
-                    hub_namespace(".possibleDates")(db_path),
+                    annohub_namespace(".possibleDates")(db_path),
                     format = "%Y-%m-%d"
                 )
                 restrict <- as.POSIXlt(
-                    hub_namespace(".biocVersionDate")(version),
+                    annohub_namespace(".biocVersionDate")(version),
                     format = "%Y-%m-%d"
                 )
                 if (length(restrict)) {
@@ -63,23 +62,25 @@ annohub <- function(..., version = NULL, hub = NULL, cache = NULL,
             }
         )
     } else {
-        dates <- hub_namespace(".possibleDates")(db_path)
+        dates <- annohub_namespace(".possibleDates")(db_path)
         db_date <- dates[length(dates)]
     }
-    db_uid <- hub_namespace(".db_uid0")(db_path, db_date, local)
+    db_uid <- annohub_namespace(".db_uid0")(db_path, db_date, local)
     hub <- methods::new("AnnotationHub",
         cache = cache, hub = url, date = db_date,
         .db_path = db_path, .db_uid = db_uid, isLocalHub = local,
         ...
     )
-    cli::cli_inform("snapshotDate(): ", hub_namespace("snapshotDate")(hub))
+    cli::cli_inform("snapshotDate(): ", AnnotationHub::snapshotDate(hub))
     if (!local) {
-        index <- hub_namespace(".db_create_index")(hub)
-        hub <- hub_namespace(".db_index<-")(hub, value = index)
+        index <- annohub_namespace(".db_create_index")(hub)
+        hub <- annohub_namespace(".db_index<-")(hub, value = index)
     } else {
-        index <- hub_namespace(".db_index_file")(hub)
-        hub <- hub_namespace(".db_index<-")(hub, value = index)
-        hub <- hub_namespace(".subsethub")(hub)
+        index <- annohub_namespace(".db_index_file")(hub)
+        hub <- annohub_namespace(".db_index<-")(hub, value = index)
+        hub <- annohub_namespace(".subsethub")(hub)
     }
     hub
 }
+
+annohub_namespace <- function(fn) from_namespace("AnnotationHub", fn)
