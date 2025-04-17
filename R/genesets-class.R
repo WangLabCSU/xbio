@@ -11,18 +11,26 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
             ))
         }
         terms <- names(genesets) %||% character() # For empty `genesets`
-    } else if (vec_size(terms) != vec_size(genesets)) {
-        cli::cli_abort(paste(
-            "{.arg {arg_terms}} ({vec_size(terms)}) must have",
-            "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
-        ))
+    } else {
+        terms <- vec_cast(terms, character(), x_arg = arg_terms)
+        if (vec_size(terms) != vec_size(genesets)) {
+            cli::cli_abort(paste(
+                "{.arg {arg_terms}} ({vec_size(terms)}) must have",
+                "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
+            ))
+        }
     }
-    if (!is.null(descriptions) &&
-        vec_size(descriptions) != vec_size(genesets)) {
-        cli::cli_abort(paste(
-            "{.arg {arg_descriptions}} ({vec_size(descriptions)}) must have",
-            "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
-        ))
+    if (!is.null(descriptions)) {
+        descriptions <- vec_cast(
+            descriptions, character(),
+            x_arg = arg_descriptions
+        )
+        if (vec_size(descriptions) != vec_size(genesets)) {
+            cli::cli_abort(paste(
+                "{.arg {arg_descriptions}} ({vec_size(descriptions)}) must have",
+                "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
+            ))
+        }
     }
     # we use new class to ensure `terms` and `descriptions` are parallel with
     # the data
@@ -124,9 +132,17 @@ vec_cast.data.frame.enricher_genesets <- function(x, to, ...) {
 #' @export
 vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
     if (ncol(x) == 2L) {
-        new_genesets(x[[2L]], terms = x[[1L]])
+        new_genesets(x[[2L]],
+            terms = vec_cast(x[[1L]], character(), x_arg = "the 1st column")
+        )
     } else if (ncol(x) == 3L) {
-        new_genesets(x[[3L]], terms = x[[1L]], descriptions = x[[2L]])
+        new_genesets(x[[3L]],
+            terms = vec_cast(x[[1L]], character(), x_arg = "the 1st column"),
+            descriptions = vec_cast(
+                x[[2L]], character(),
+                x_arg = "the 2nd column"
+            )
+        )
     } else {
         cli::cli_abort("{.arg x} must be a data frame of 2 or 3 columns")
     }
@@ -188,25 +204,22 @@ vec_math.enricher_genesets <- function(.fn, .x, ...) {
 
 #' @export
 `[[.enricher_genesets` <- function(x, i, ...) {
-    out <- do.call(`[[`, list(x, i, ...))
+    out <- do.call(`[[`, list(vec_cast(x, list()), i, ...))
     descriptions <- attr(x, "descriptions", exact = TRUE)
     if (!is.null(descriptions)) {
-        names(descriptions) <- nms
-        attr(out, "description") <- do.call(`[[`, list(descriptions, i))
+        names(descriptions) <- names(x)
+        attr(out, "description") <- descriptions[i]
     }
     out
 }
 
 #' @export
 `$.enricher_genesets` <- function(x, i, ...) {
-    nms <- names(x)
-    x <- unclass(x)
-    names(x) <- nms
-    out <- do.call(`$`, list(x, i, ...))
+    out <- do.call(`$`, list(vec_cast(x, list()), i, ...))
     descriptions <- attr(x, "descriptions", exact = TRUE)
     if (!is.null(descriptions)) {
-        names(descriptions) <- nms
-        attr(out, "description") <- do.call(`$`, list(descriptions, i))
+        names(descriptions) <- names(x)
+        attr(out, "description") <- descriptions[i]
     }
     out
 }
