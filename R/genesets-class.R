@@ -24,18 +24,14 @@ vec_proxy.enricher_genesets <- function(x, ...) {
     genesets <- unclass(x)
     attributes(genesets) <- NULL
     if (is.null(descriptions)) {
-        new_data_frame(
-            list(terms = terms, genesets = genesets),
-            row.names = terms
-        )
+        new_data_frame(list(terms = terms, genesets = genesets))
     } else {
         new_data_frame(
             list(
                 terms = terms,
                 descriptions = descriptions,
                 genesets = genesets
-            ),
-            row.names = terms
+            )
         )
     }
 }
@@ -64,37 +60,9 @@ names.enricher_genesets <- function(x) attr(x, "terms", exact = TRUE)
 }
 
 #' @export
-`[.enricher_genesets` <- function(x, i, ...) {
-    if (!missing(...)) {
-        cli::cli_abort(
-            "Can't index {.cls genesets} on dimensions greater than 1."
-        )
-    }
-    vec_restore(vec_slice(vec_proxy(x), rlang::maybe_missing(i)), x)
-}
-
-#' @export
-`[[.enricher_genesets` <- function(x, i, ...) {
-    nms <- names(x)
-    x <- unclass(x)
-    attributes(x) <- NULL
-    names(x) <- nms
-    x[[i]]
-}
-
-#' @export
-`$.enricher_genesets` <- `[[.enricher_genesets`
-
-#' @export
-`length<-.enricher_genesets` <- function(x, value) {
-    out <- vec_size_assign(vec_data(x), value)
-    vec_restore(out, x)
-}
-
-#' @export
 obj_print_data.enricher_genesets <- function(x, ...) {
     data <- vec_data(x)
-    size <- vec_size(x)
+    size <- vec_size(data)
     if (size > 6L) {
         data <- vec_c(vec_slice(data, 1:3), vec_slice(data, size - (3:1)))
     }
@@ -121,8 +89,89 @@ obj_print_data.enricher_genesets <- function(x, ...) {
     cat(output, sep = "\n")
 }
 
+#' @method vec_cast enricher_genesets
+#' @export
+vec_cast.enricher_genesets <- function(x, to, ...) {
+    UseMethod("vec_cast.enricher_genesets")
+}
+
+#' @export
+vec_cast.enricher_genesets.enricher_genesets <- function(x, to, ...) {
+    x
+}
+
+#' @export
+vec_cast.data.frame.enricher_genesets <- function(x, to, ...) {
+    vec_proxy(x)
+}
+
+#' @export
+vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
+    if (ncol(x) == 2L) {
+        new_genesets(.subset2(x, 2L), terms = .subset2(x, 1L))
+    } else if (ncol(x) == 3L) {
+        new_genesets(
+            .subset2(x, 3L),
+            terms = .subset2(x, 1L),
+            descriptions = .subset2(x, 2L)
+        )
+    } else {
+        cli::cli_abort("{.arg x} must be a data frame of 2 or 3 columns")
+    }
+}
+
+#' @export
+vec_math.enricher_genesets <- function(.fn, .x, ...) {
+    stop_incompatible_op("vec_math", x = .x)
+}
+
+#' @export
+`[.enricher_genesets` <- function(x, i, ...) {
+    if (!missing(...)) {
+        cli::cli_abort(
+            "Can't index {.cls genesets} on dimensions greater than 1."
+        )
+    }
+    data <- new_data_frame(vec_proxy(x), row.names = names(x))
+    vec_restore(vec_slice(data, rlang::maybe_missing(i)), x)
+}
+
+#' @export
+`[[.enricher_genesets` <- function(x, i, ...) {
+    nms <- names(x)
+    x <- unclass(x)
+    names(x) <- nms
+    out <- do.call("[[", list(x, i, ...))
+    descriptions <- attr(x, "descriptions", exact = TRUE)
+    if (!is.null(descriptions)) {
+        names(descriptions) <- nms
+        attr(out, "description") <- do.call("[[", list(descriptions, i))
+    }
+    out
+}
+
+#' @export
+`$.enricher_genesets` <- function(x, i, ...) {
+    nms <- names(x)
+    x <- unclass(x)
+    names(x) <- nms
+    out <- do.call("$", list(x, i, ...))
+    descriptions <- attr(x, "descriptions", exact = TRUE)
+    if (!is.null(descriptions)) {
+        names(descriptions) <- nms
+        attr(out, "description") <- do.call("$", list(descriptions, i))
+    }
+    out
+}
+
+#' @export
+`length<-.enricher_genesets` <- function(x, value) {
+    out <- vec_size_assign(vec_proxy(x), value)
+    vec_restore(out, x)
+}
+
 #' @export
 rep.enricher_genesets <- function(x, ...) {
-    out <- lapply(vec_data(x), base::rep, ...)
+    out <- lapply(vec_proxy(x), base::rep, ...)
     vec_restore(out, x)
 }
