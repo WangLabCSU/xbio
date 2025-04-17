@@ -1,13 +1,31 @@
-new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL) {
+#' @importFrom rlang caller_arg
+new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
+                         arg_genesets = caller_arg(genesets),
+                         arg_terms = caller_arg(terms),
+                         arg_descriptions = caller_arg(descriptions)) {
     if (is.null(terms)) {
-        if (!rlang::is_named(genesets)) {
+        if (!rlang::is_named2(genesets)) {
             cli::cli_abort(paste(
-                "{.arg terms} must be provided or {.arg genesets}",
+                "{.arg {arg_terms}} must be provided or {.arg {arg_genesets}}",
                 "should be named"
             ))
         }
-        terms <- names(genesets)
+        terms <- names(genesets) %||% character() # For empty `genesets`
+    } else if (vec_size(terms) != vec_size(genesets)) {
+        cli::cli_abort(paste(
+            "{.arg {arg_terms}} ({vec_size(terms)}) must have",
+            "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
+        ))
     }
+    if (!is.null(descriptions) &&
+        vec_size(descriptions) != vec_size(genesets)) {
+        cli::cli_abort(paste(
+            "{.arg {arg_descriptions}} ({vec_size(descriptions)}) must have",
+            "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
+        ))
+    }
+    # we use new class to ensure `terms` and `descriptions` are parallel with
+    # the data
     new_vctr(
         genesets,
         terms = terms,
@@ -15,6 +33,22 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL) {
         ...,
         class = "enricher_genesets"
     )
+}
+
+# We regard `terms` as the names of genesets
+#' @export
+names.enricher_genesets <- function(x) attr(x, "terms", exact = TRUE)
+
+#' @export
+`names<-.enricher_genesets` <- function(x, value) {
+    if (is.null(value)) {
+        cli::cli_abort("Cannot remove the names of genesets")
+    } else {
+        value <- vec_cast(value, character(), x_arg = "names")
+        vec_check_size(value, vec_size(x), arg = "names")
+        attr(x, "terms") <- value
+    }
+    x
 }
 
 #' @export
@@ -38,25 +72,13 @@ vec_proxy.enricher_genesets <- function(x, ...) {
 
 #' @export
 vec_restore.enricher_genesets <- function(x, to, ...) {
+    # restore the terms and descriptions from the proxy
     attr(to, "terms") <- .subset2(x, "terms")
     attr(to, "descriptions") <- .subset2(x, "descriptions")
+
+    # restore the attributes for the genesets
     x <- .subset2(x, "genesets")
     NextMethod()
-}
-
-#' @export
-names.enricher_genesets <- function(x) attr(x, "terms", exact = TRUE)
-
-#' @export
-`names<-.enricher_genesets` <- function(x, value) {
-    if (is.null(value)) {
-        cli::cli_abort("Cannot remove the names of genesets")
-    } else {
-        value <- as.character(value)
-        vec_check_size(value, vec_size(x), arg = "names")
-        attr(x, "terms") <- value
-    }
-    x
 }
 
 #' @export
@@ -89,12 +111,6 @@ obj_print_data.enricher_genesets <- function(x, ...) {
     cat(output, sep = "\n")
 }
 
-#' @method vec_cast enricher_genesets
-#' @export
-vec_cast.enricher_genesets <- function(x, to, ...) {
-    UseMethod("vec_cast.enricher_genesets")
-}
-
 #' @export
 vec_cast.enricher_genesets.enricher_genesets <- function(x, to, ...) {
     x
@@ -108,17 +124,51 @@ vec_cast.data.frame.enricher_genesets <- function(x, to, ...) {
 #' @export
 vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
     if (ncol(x) == 2L) {
-        new_genesets(.subset2(x, 2L), terms = .subset2(x, 1L))
+        new_genesets(x[[2L]], terms = x[[1L]])
     } else if (ncol(x) == 3L) {
-        new_genesets(
-            .subset2(x, 3L),
-            terms = .subset2(x, 1L),
-            descriptions = .subset2(x, 2L)
-        )
+        new_genesets(x[[3L]], terms = x[[1L]], descriptions = x[[2L]])
     } else {
         cli::cli_abort("{.arg x} must be a data frame of 2 or 3 columns")
     }
 }
+
+#' @export
+as.data.frame.enricher_genesets <- function(x, ...) {
+    vec_cast(x, new_data_frame())
+}
+
+#' @export
+vec_cast.list.enricher_genesets <- function(x, to, ...) {
+    out <- unclass(x)
+    attr(out, "terms") <- NULL
+    names(out) <- names(x)
+    out
+}
+
+#' @export
+vec_cast.enricher_genesets.list <- function(x, to, ...) {
+    if (!rlang::is_named2(x)) {
+        cli::cli_abort("{.arg x} must be a named list")
+    }
+    if (is.null(descriptions <- attr(x, "descriptions"))) {
+        descriptions <- vapply(
+            x,
+            function(e) as.character(attr(x, "description")) %||% NA_character_,
+            character(1L),
+            USE.NAMES = FALSE
+        )
+        if (all(is.na(descriptions))) descriptions <- NULL
+    } else {
+        descriptions <- as.character(descriptions)
+        if (vec_size(x) != vec_size(descriptions)) {
+            descriptions <- NULL
+        }
+    }
+    new_genesets(x, descriptions = descriptions)
+}
+
+#' @export
+as.list.enricher_genesets <- function(x, ...) vec_cast(x, list())
 
 #' @export
 vec_math.enricher_genesets <- function(.fn, .x, ...) {
@@ -138,14 +188,11 @@ vec_math.enricher_genesets <- function(.fn, .x, ...) {
 
 #' @export
 `[[.enricher_genesets` <- function(x, i, ...) {
-    nms <- names(x)
-    x <- unclass(x)
-    names(x) <- nms
-    out <- do.call("[[", list(x, i, ...))
+    out <- do.call(`[[`, list(x, i, ...))
     descriptions <- attr(x, "descriptions", exact = TRUE)
     if (!is.null(descriptions)) {
         names(descriptions) <- nms
-        attr(out, "description") <- do.call("[[", list(descriptions, i))
+        attr(out, "description") <- do.call(`[[`, list(descriptions, i))
     }
     out
 }
@@ -155,11 +202,11 @@ vec_math.enricher_genesets <- function(.fn, .x, ...) {
     nms <- names(x)
     x <- unclass(x)
     names(x) <- nms
-    out <- do.call("$", list(x, i, ...))
+    out <- do.call(`$`, list(x, i, ...))
     descriptions <- attr(x, "descriptions", exact = TRUE)
     if (!is.null(descriptions)) {
         names(descriptions) <- nms
-        attr(out, "description") <- do.call("$", list(descriptions, i))
+        attr(out, "description") <- do.call(`$`, list(descriptions, i))
     }
     out
 }
