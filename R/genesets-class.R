@@ -10,7 +10,6 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
                 "should be named"
             ))
         }
-        terms <- names(genesets) %||% character() # For empty `genesets`
     } else {
         terms <- vec_cast(terms, character(), x_arg = arg_terms)
         if (vec_size(terms) != vec_size(genesets)) {
@@ -19,6 +18,7 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
+        names(genesets) <- terms
     }
     if (!is.null(descriptions)) {
         descriptions <- vec_cast(
@@ -32,31 +32,22 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
             ))
         }
     }
-    # we use new class to ensure `terms` and `descriptions` are parallel with
-    # the data
+    # we use new class to ensure `descriptions` are parallel with the data
     new_vctr(
         genesets,
-        terms = terms,
         descriptions = descriptions,
         ...,
         class = "enricher_genesets"
     )
 }
 
-# We regard `terms` as the names of genesets
-#' @export
-names.enricher_genesets <- function(x) attr(x, "terms", exact = TRUE)
-
 #' @export
 `names<-.enricher_genesets` <- function(x, value) {
     if (is.null(value)) {
         cli::cli_abort("Cannot remove the names of genesets")
     } else {
-        value <- vec_cast(value, character(), x_arg = "names")
-        vec_check_size(value, vec_size(x), arg = "names")
-        attr(x, "terms") <- value
+        NextMethod()
     }
-    x
 }
 
 #' @export
@@ -81,12 +72,14 @@ vec_proxy.enricher_genesets <- function(x, ...) {
 #' @export
 vec_restore.enricher_genesets <- function(x, to, ...) {
     # restore the terms and descriptions from the proxy
-    attr(to, "terms") <- .subset2(x, "terms")
+    terms <- .subset2(x, "terms")
     attr(to, "descriptions") <- .subset2(x, "descriptions")
 
     # restore the attributes for the genesets
     x <- .subset2(x, "genesets")
-    NextMethod()
+    out <- NextMethod()
+    names(out) <- terms
+    out
 }
 
 #' @export
@@ -154,12 +147,7 @@ as.data.frame.enricher_genesets <- function(x, ...) {
 }
 
 #' @export
-vec_cast.list.enricher_genesets <- function(x, to, ...) {
-    out <- unclass(x)
-    attr(out, "terms") <- NULL
-    names(out) <- names(x)
-    out
-}
+vec_cast.list.enricher_genesets <- function(x, to, ...) unclass(x)
 
 #' @export
 vec_cast.enricher_genesets.list <- function(x, to, ...) {
@@ -204,30 +192,30 @@ vec_math.enricher_genesets <- function(.fn, .x, ...) {
 
 #' @export
 `[[.enricher_genesets` <- function(x, i, ...) {
+    i <- vec_as_location2(i, n = length(x), names = names(x))
     out <- do.call(`[[`, list(vec_cast(x, list()), i, ...))
     descriptions <- attr(x, "descriptions", exact = TRUE)
     if (!is.null(descriptions)) {
-        names(descriptions) <- names(x)
         attr(out, "description") <- descriptions[i]
     }
     out
 }
 
 #' @export
-`$.enricher_genesets` <- function(x, i, ...) {
-    out <- do.call(`$`, list(vec_cast(x, list()), i, ...))
-    descriptions <- attr(x, "descriptions", exact = TRUE)
-    if (!is.null(descriptions)) {
-        names(descriptions) <- names(x)
-        attr(out, "description") <- descriptions[i]
-    }
-    out
-}
+`$.enricher_genesets` <- `[[.enricher_genesets`
 
 #' @export
 `length<-.enricher_genesets` <- function(x, value) {
-    out <- vec_size_assign(vec_proxy(x), value)
-    vec_restore(out, x)
+    data <- vec_proxy(x)
+    size <- vec_size(data)
+    if (value > size) {
+        cli::cli_abort(
+            "Cannot set length greater than the current number of gene sets."
+        )
+    } else {
+        i <- seq_len(value)
+    }
+    vec_restore(vec_slice(data, i), x)
 }
 
 #' @export

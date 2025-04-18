@@ -23,7 +23,8 @@ Imports:
     vctrs (>= 0.5.0)
 Suggests:
     AnnotationHub,
-    KEGGREST
+    KEGGREST,
+    testthat (>= 3.0.0)
 URL: https://github.com/Yunuuuu/enricher
 BugReports: https://github.com/Yunuuuu/enricher/issues
 Collate: 
@@ -35,8 +36,10 @@ Collate:
     'extendr-wrappers.R'
     'genesets-class.R'
     'genesets-methods.R'
+    'gsea-.R'
+    'gsea-broad.R'
     'utils-S7.R'
-    'gsea.R'
+    'gsea-prerank.R'
     'import-standalone-assert.R'
     'import-standalone-obj-type.R'
     'import-standalone-pkg.R'
@@ -46,3 +49,4 @@ Collate:
     'zzz.R'
 Config/rextendr/version: 0.3.1.9001
 SystemRequirements: Cargo (Rust's package manager), rustc
+Config/testthat/edition: 3
