@@ -45,9 +45,12 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
 `names<-.enricher_genesets` <- function(x, value) {
     if (is.null(value)) {
         cli::cli_abort("Cannot remove the names of genesets")
-    } else {
-        NextMethod()
     }
+    value <- vec_cast(value, character(), x_arg = "names")
+    if (vec_any_missing(value) || any(value == "")) {
+        cli::cli_abort("Names cannot be missing or empty.")
+    }
+    NextMethod()
 }
 
 #' @export

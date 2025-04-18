@@ -50,7 +50,7 @@ test_that("errors when descriptions and genesets have mismatched lengths", {
 })
 
 # Name Handling
-test_that("can assign new names to enricher_genesets", {
+test_that("names<-.enricher_genesets cworks for valid input", {
     gs <- list(c("A", "B"), c("C"))
     obj <- new_genesets(gs,
         terms = c("old1", "old2"),
@@ -61,7 +61,7 @@ test_that("can assign new names to enricher_genesets", {
     expect_named(obj, c("new1", "new2"))
 })
 
-test_that("preserves descriptions when renaming", {
+test_that("names<-.enricher_genesets preserves descriptions when renaming", {
     gs <- list(c("A", "B"), c("C"))
     obj <- new_genesets(gs,
         terms = c("a", "b"),
@@ -73,13 +73,24 @@ test_that("preserves descriptions when renaming", {
     expect_equal(attr(obj, "descriptions"), c("desc1", "desc2"))
 })
 
-test_that("throws error when setting names to NULL", {
+test_that("names<-.enricher_genesets rejects NULL in names", {
     gs <- list(a = c("A", "B"))
     obj <- new_genesets(gs)
     expect_error(
         names(obj) <- NULL,
         "Cannot remove the names of genesets"
     )
+})
+
+test_that("names<-.enricher_genesets rejects NA in names", {
+    x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
+    expect_error(names(x) <- c("Valid", NA), "Names cannot be missing or empty")
+})
+
+test_that("names<-.enricher_genesets rejects empty string in names", {
+    x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
+    new_names <- c("", "Valid")
+    expect_error(names(x) <- new_names, "Names cannot be missing or empty")
 })
 
 # Subsetting and indexing
