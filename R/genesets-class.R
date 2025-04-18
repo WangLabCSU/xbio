@@ -18,6 +18,9 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
+        if (vec_any_missing(terms) || any(terms == "")) {
+            cli::cli_abort("{.arg terms} cannot be missing or empty.")
+        }
         names(genesets) <- terms
     }
     if (!is.null(descriptions)) {
