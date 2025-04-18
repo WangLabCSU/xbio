@@ -11,14 +11,26 @@ map_genesets <- function(gs, key_source, key_target,
     if (vec_size(gs) == 0L) return(gs) # styler: off
 
     # Infer the annodb ----------------------------
+    if (vec_unique_count(attr(gs, "organism")) > 1L) {
+        cli::cli_abort(c(
+            "Mapping genesets from multiple {.arg organism} values is not supported.",
+            i = "Please map genesets for each organism separately before merging."
+        ))
+    }
     if (is.null(annodb)) {
         if (is.null(organism)) {
-            cli::cli_abort(paste(
-                "Please specify {.arg annodb} to map {.arg gs} into",
-                "{.field {key_target}}, or specify {.arg organism}",
-                "so we can infer {.arg annodb} for you."
-            ))
+            organism <- vec_unique(attr(gs, "organism"))
+            if (is.null(organism)) {
+                cli::cli_abort(paste(
+                    "Please specify {.arg annodb} to map {.arg gs} into",
+                    "{.field {key_target}}, or specify {.arg organism}",
+                    "so we can infer {.arg annodb} for you."
+                ))
+            }
+        } else if (!.rlang_check_string(organism, allow_empty = FALSE)) {
+            cli::cli_abort("{.arg organism} must be a single string")
         }
+
         annodb <- switch(organism,
             hsa = "org.Hs.eg.db",
             cli::cli_abort(c(
