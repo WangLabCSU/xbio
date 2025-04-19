@@ -35,6 +35,7 @@ Collate:
     'enricher-package.R'
     'extendr-wrappers.R'
     'genesets-class.R'
+    'genesets-gs.R'
     'genesets-methods.R'
     'gsea-.R'
     'gsea-broad.R'
