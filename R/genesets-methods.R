@@ -1,6 +1,4 @@
-genesets <- function(gs, ...) {
-    UseMethod("genesets")
-}
+genesets <- function(gs, ...) UseMethod("genesets")
 
 #' @export
 genesets.character <- function(gs, ..., organism = NULL, strategy = NULL,
@@ -33,3 +31,9 @@ genesets_go <- function(organism = NULL, strategy = NULL, cache = NULL,
         strategy = strategy, cache = cache, verbose = verbose
     )
 }
+
+#' @export
+genesets.data.frame <- function(gs, ...) vec_cast(gs, new_genesets())
+
+#' @export
+genesets.list <- function(gs, ...) vec_cast(gs, new_genesets())

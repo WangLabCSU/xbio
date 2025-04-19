@@ -10,7 +10,5 @@
 #' @useDynLib enricher, .registration = TRUE
 NULL
 
-hello_world <- function() .Call(wrap__hello_world)
-
 
 # nolint end

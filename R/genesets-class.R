@@ -1,5 +1,6 @@
 #' @importFrom rlang caller_arg
-new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
+new_genesets <- function(genesets = list(), ..., 
+                         terms = NULL, descriptions = NULL,
                          arg_genesets = caller_arg(genesets),
                          arg_terms = caller_arg(terms),
                          arg_descriptions = caller_arg(descriptions)) {
@@ -35,6 +36,11 @@ new_genesets <- function(genesets, ..., terms = NULL, descriptions = NULL,
             ))
         }
     }
+    # for a single geneset, it should be a character
+    genesets <- lapply(genesets, function(geneset) {
+        out <- as.character(unlist(geneset, use.names = FALSE))
+        vec_unique(out)
+    })
     # we use new class to ensure `descriptions` are parallel with the data
     new_vctr(
         genesets,
@@ -92,6 +98,7 @@ vec_restore.enricher_genesets <- function(x, to, ...) {
 obj_print_data.enricher_genesets <- function(x, ...) {
     data <- vec_data(x)
     size <- vec_size(data)
+    if (size == 0L) return(invisible(x)) # styler: off
     if (size > 6L) {
         data <- vec_c(vec_slice(data, 1:3), vec_slice(data, size - (3:1)))
     }
@@ -130,20 +137,32 @@ vec_cast.data.frame.enricher_genesets <- function(x, to, ...) {
 
 #' @export
 vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
+    # Nest the term and descriptions columns
     if (ncol(x) == 2L) {
-        new_genesets(x[[2L]],
-            terms = vec_cast(x[[1L]], character(), x_arg = "the 1st column")
+        terms <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
+        locs <- vec_group_loc(terms)
+        new_genesets(
+            vec_chop(x[[2L]], .subset2(locs, "loc")),
+            terms = .subset2(locs, "key")
         )
     } else if (ncol(x) == 3L) {
-        new_genesets(x[[3L]],
-            terms = vec_cast(x[[1L]], character(), x_arg = "the 1st column"),
-            descriptions = vec_cast(
-                x[[2L]], character(),
-                x_arg = "the 2nd column"
-            )
+        terms <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
+        descriptions <- vec_cast(x[[2L]], character(), x_arg = "the 2nd column")
+        locs <- vec_group_loc(data_frame(
+            terms = terms,
+            descriptions = descriptions
+        ))
+        keys <- .subset2(locs, "key")
+        new_genesets(
+            vec_chop(x[[3L]], .subset2(locs, "loc")),
+            terms = .subset2(keys, "terms"),
+            descriptions = .subset2(keys, "descriptions")
         )
     } else {
-        cli::cli_abort("{.arg x} must be a data frame of 2 or 3 columns")
+        cli::cli_abort(paste(
+            "Conversion to {.cls genesets} require a data frame",
+            "of 2 or 3 columns"
+        ))
     }
 }
 
@@ -158,7 +177,7 @@ vec_cast.list.enricher_genesets <- function(x, to, ...) unclass(x)
 #' @export
 vec_cast.enricher_genesets.list <- function(x, to, ...) {
     if (!rlang::is_named2(x)) {
-        cli::cli_abort("{.arg x} must be a named list")
+        cli::cli_abort("Conversion to {.cls genesets} requires a named list.")
     }
     if (is.null(descriptions <- attr(x, "descriptions"))) {
         descriptions <- vapply(
