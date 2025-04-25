@@ -33,7 +33,7 @@ gs_trim <- function(gs, ...) {
 gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
     assert_s3_class(gs, "enricher_genesets")
     assert_number_whole(min_size, min = 1, allow_null = TRUE)
-    assert_number_whole(min_size, min = 1, allow_null = TRUE)
+    assert_number_whole(max_size, min = 1, allow_null = TRUE)
     if (is.null(min_size) && is.null(max_size)) {
         return(gs)
     }
