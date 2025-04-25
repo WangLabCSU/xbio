@@ -34,7 +34,7 @@ annohub <- function(..., version = NULL, hub = NULL, cache = NULL,
     localHub <- localHub %||% AnnotationHub::getAnnotationHubOption("LOCAL")
     db_path <- annohub_namespace(".create_cache")(
         "AnnotationHub",
-        url = url, cache, proxy, local,
+        url = url, cache = cache, proxy = proxy, local = local,
         ask = AnnotationHub::getAnnotationHubOption("ASK")
     )
     if (!local) {
