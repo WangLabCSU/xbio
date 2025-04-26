@@ -7,17 +7,17 @@ mod algorithm;
 use algorithm::GSEAInput;
 
 #[extendr]
-/// GSEA gene permutation analysis.
-///
-/// # Arguments
-/// - `identifiers`: Character vector of gene identifiers.
-/// - `metrics`: Numeric vector of ranking metrics.
-/// - `genesets`: List of character vectors, each representing a geneset.
-/// - `exponent`: Weighting exponent for metrics.
-/// - `nperm`: Number of permutations.
-///
-/// # Returns
-/// A list containing enrichment results.
+// GSEA gene permutation analysis.
+//
+// # Arguments
+// - `identifiers`: Character vector of gene identifiers.
+// - `metrics`: Numeric vector of ranking metrics.
+// - `genesets`: List of character vectors, each representing a geneset.
+// - `exponent`: Weighting exponent for metrics.
+// - `nperm`: Number of permutations.
+//
+// # Returns
+// A list containing enrichment results.
 fn gsea_gene_permutate(
     identifiers: Robj,
     metrics: Vec<f64>,
