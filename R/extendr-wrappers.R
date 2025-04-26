@@ -10,7 +10,18 @@
 #' @useDynLib enricher, .registration = TRUE
 NULL
 
-gsea_gene_permutate <- function(identifiers, metrics, genesets, exponent, nperm) .Call(wrap__gsea_gene_permutate, identifiers, metrics, genesets, exponent, nperm)
+#' GSEA gene permutation analysis.
+#'
+#' # Arguments
+#' - `identifiers`: Character vector of gene identifiers.
+#' - `metrics`: Numeric vector of ranking metrics.
+#' - `genesets`: List of character vectors, each representing a geneset.
+#' - `exponent`: Weighting exponent for metrics.
+#' - `nperm`: Number of permutations.
+#'
+#' # Returns
+#' A list containing enrichment results.
+gsea_gene_permutate <- function(identifiers, metrics, genesets, exponent, nperm, seed) .Call(wrap__gsea_gene_permutate, identifiers, metrics, genesets, exponent, nperm, seed)
 
 
 # nolint end

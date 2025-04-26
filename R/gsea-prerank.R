@@ -77,7 +77,8 @@ method(gsea0, list(gseaPrerank, class_any)) <- function(
         object,
         genesets = c(unclass(gs)), # remove attributes
         exponent = method@exponential,
-        nperm = method@nperm
+        nperm = method@nperm,
+        seed = sample(1e6L, 1L)
     )
     out <- rust_unwrap(out)
     indices <- out$indices

@@ -25,7 +25,7 @@ fn gsea_gene_permutate(
     exponent: f64,
     nperm: usize,
     // threads: usize,
-    // seed: usize,
+    seed: usize,
 ) -> Result<List> {
     //  Check and parse `identifiers`
     let identifiers: Vec<&str> = identifiers
@@ -55,6 +55,7 @@ fn gsea_gene_permutate(
         genesets: input_gs,
         exponent,
         nperm,
+        seed
     };
     Ok(input.gene_permutate())
 }
