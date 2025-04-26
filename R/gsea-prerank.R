@@ -1,24 +1,24 @@
 # Used to extract the `prerank` statistics
 gseaPrerank0 <- new_class("gseaPrerank0")
 
-method(gsea0, list(class_any, gseaPrerank0)) <- function(
-    object, method, ..., gs) {
+method(gsea0, list(gseaPrerank0, class_any)) <- function(
+    method, object, ..., gs) {
     cli::cli_abort(paste(
         "Cannot extract ranking statistics from",
         "{.obj_type_friendly {object}}"
     ))
 }
 
-method(gsea0, list(class_numeric, gseaPrerank0)) <- function(
-    object, method, ..., gs) {
+method(gsea0, list(gseaPrerank0, class_numeric)) <- function(
+    method, object, ..., gs) {
     if (!rlang::is_named2(object)) {
         cli::cli_abort("{.arg object} must be a named numeric")
     }
     object
 }
 
-method(gsea0, list(class_data.frame, gseaPrerank0)) <- function(
-    object, method, ..., gs) {
+method(gsea0, list(gseaPrerank0, class_data.frame)) <- function(
+    method, object, ..., gs) {
     if (ncol(object) < 2L) {
         cli::cli_abort(
             "{.arg object} must be a data frame of at least 2 columns"
@@ -45,7 +45,7 @@ gseaPrerank <- new_class("gseaPrerank", gseaPrerank0,
                 prop(self, "nperm") <- value
                 self
             },
-            default = 1L
+            default = 2000L
         ),
         exponential = prop_number_decimal(
             setter = function(self, value) {
@@ -69,17 +69,25 @@ gseaPrerank <- new_class("gseaPrerank", gseaPrerank0,
     )
 )
 
-method(gsea0, list(class_any, gseaPrerank)) <- function(
-    object, method, ..., gs) {
-    object <- gsea0(object, super(method, gseaPrerank0), ..., gs = gs)
-    # To-DO: use rust to implement
-    call_rust_fn(
-        "gsea",
-        gs, object,
-        nperm = method@nperm,
-        threads = method@threads,
-        gseaParam = method@exponential
+method(gsea0, list(gseaPrerank, class_any)) <- function(
+    method, object, ..., gs) {
+    object <- gsea0(super(method, gseaPrerank0), object, ..., gs = gs)
+    out <- gsea_gene_permutate(
+        names(object),
+        object,
+        genesets = c(unclass(gs)), # remove attributes
+        exponent = method@exponential,
+        nperm = method@nperm
     )
+    out <- rust_unwrap(out)
+    indices <- out$indices
+    gs_data <- list(
+        terms = names(gs),
+        descriptions = attr(gs, "descriptions") %||%
+            rep_len(NA_character_, length(gs))
+    )
+    out$indices <- NULL
+    new_data_frame(c(gs_data, out), indices = indices)
 }
 
 # fgsea method -----------------------------------------
@@ -119,10 +127,10 @@ gseaSimple <- new_class(
     )
 )
 
-method(gsea0, list(class_any, gseaSimple)) <- function(
-    object, method, ..., gs) {
+method(gsea0, list(gseaSimple, class_any)) <- function(
+    method, object, ..., gs) {
     check_bioc_installed("fgsea", "to use {.field gseaSimple} method")
-    object <- gsea0(object, super(method, gseaPrerank0), ..., gs = gs)
+    object <- gsea0(super(method, gseaPrerank0), object, ..., gs = gs)
     fgsea::fgseaSimple(
         gs,
         object,
@@ -171,10 +179,10 @@ gseaMultilevel <- new_class(
     }
 )
 
-method(gsea0, list(class_any, gseaMultilevel)) <- function(
-    object, method, ..., gs) {
+method(gsea0, list(gseaMultilevel, class_any)) <- function(
+    method, object, ..., gs) {
     check_bioc_installed("fgsea", "to use {.field gseaMultilevel} method")
-    object <- gsea0(object, super(method, gseaPrerank0), ..., gs = gs)
+    object <- gsea0(super(method, gseaPrerank0), object, ..., gs = gs)
     fgsea::fgseaMultilevel(
         gs,
         object,

@@ -19,4 +19,5 @@ mod gsea;
 // For methods, we'll call it directly with R function `call_rust_method`
 extendr_module! {
     mod enricher;
+    use gsea;
 }

@@ -1,5 +1,5 @@
 #' @importFrom rlang caller_arg
-new_genesets <- function(genesets = list(), ..., 
+new_genesets <- function(genesets = list(), ...,
                          terms = NULL, descriptions = NULL,
                          arg_genesets = caller_arg(genesets),
                          arg_terms = caller_arg(terms),
@@ -95,6 +95,12 @@ vec_restore.enricher_genesets <- function(x, to, ...) {
 }
 
 #' @export
+obj_print_header.enricher_genesets <- function(x, ...) {
+    cli::cat_line("<", "genesets", "[", vec_size(x), "]>")
+    invisible(x)
+}
+
+#' @export
 obj_print_data.enricher_genesets <- function(x, ...) {
     data <- vec_data(x)
     size <- vec_size(data)
@@ -167,6 +173,10 @@ vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
 }
 
 #' @export
+vec_cast.enricher_genesets.enricher_kegg_genesets <-
+    vec_cast.enricher_genesets.data.frame
+
+#' @export
 as.data.frame.enricher_genesets <- function(x, ...) {
     vec_cast(x, new_data_frame())
 }
@@ -180,12 +190,13 @@ vec_cast.enricher_genesets.list <- function(x, to, ...) {
         cli::cli_abort("Conversion to {.cls genesets} requires a named list.")
     }
     if (is.null(descriptions <- attr(x, "descriptions"))) {
-        descriptions <- vapply(
-            x,
-            function(e) as.character(attr(x, "description")) %||% NA_character_,
-            character(1L),
-            USE.NAMES = FALSE
-        )
+        descriptions <- vapply(x, function(e) {
+            if (is.null(o <- attr(x, "description"))) {
+                NA_character_
+            } else {
+                as.character(o)
+            }
+        }, character(1L), USE.NAMES = FALSE)
         if (all(is.na(descriptions))) descriptions <- NULL
     } else {
         descriptions <- as.character(descriptions)

@@ -26,8 +26,18 @@ gs_map <- function(gs, annodb, key_source, key_target) {
 
 #' @keywords internal
 #' @noRd
-gs_trim <- function(gs, ...) {
-    gs_lapply(gs, function(geneset) geneset[!is.na(geneset) & geneset != ""])
+gs_trim <- function(gs) {
+    gs <- gs_lapply(gs, function(geneset) {
+        geneset[!is.na(geneset) & geneset != ""]
+    })
+    if (!all(keep <- list_sizes(gs) > 0L)) {
+        cli::cli_warn(paste(
+            "Removing {sum(!keep)} invalid gene set{?s}",
+            "(all are empty string or missing value)"
+        ))
+        gs <- gs[keep]
+    }
+    gs
 }
 
 gs_filter <- function(gs, min_size = NULL, max_size = NULL) {

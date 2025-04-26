@@ -1,36 +1,89 @@
-use extendr_api::{prelude::Robj, RobjItertools};
+use rand::rng;
+use rand::seq::SliceRandom;
+use std::collections::HashSet;
+
+use extendr_api::prelude::{list, List};
 
 // we should provide a method to convert this object into Robj
-struct GSEAResult {
-    es: Vec<f64>,
-    running_es: Vec<f64>,
-    nes: Vec<f64>,
-    pvalue: Vec<f64>,
-    qvalue: Vec<f64>,
+pub(super) struct GSEAInput<'a> {
+    pub(super) identifiers: Vec<&'a str>,
+    pub(super) metrics: Vec<f64>,
+    pub(super) genesets: Vec<HashSet<&'a str>>,
+    pub(super) exponent: f64,
+    pub(super) nperm: usize,
+    // pub(super) threads: usize,
+    // pub(super) seed: usize,
 }
 
-fn gsea() {}
+impl<'a> GSEAInput<'a> {
+    fn prerank(&self) -> (Vec<usize>, Vec<f64>, Vec<Vec<bool>>) {
+        let metrics = &self.metrics;
+        // Create a list of indices
+        let mut indices: Vec<usize> = (0..metrics.len()).collect();
 
-struct GSEAInput {
-    metrics: Vec<f64>,
-    genesets: Vec<String>,
-    exponent: f64,
-    nperm: usize,
-    threads: usize,
-    seed: usize,
+        // Sort indices by descending metrics
+        indices.sort_unstable_by(|&a, &b| f64::total_cmp(&metrics[b], &self.metrics[a]));
+
+        let mut ranking: Vec<f64> = metrics
+            .iter()
+            .map(|x| x.abs().powf(self.exponent))
+            .collect();
+
+        let ids: Vec<_> = indices.iter().map(|&i| &self.identifiers[i]).collect();
+        ranking = indices.iter().map(|&i| ranking[i]).collect();
+
+        let hit_list = self
+            .genesets
+            .iter()
+            .map(|gs| ids.iter().map(|id| gs.contains(*id)).collect::<Vec<bool>>())
+            .collect();
+        (indices, ranking, hit_list)
+    }
+
+    pub fn gene_permutate(&self) -> List {
+        let (indices, ranking, hit_list) = self.prerank();
+        let mut es_list: Vec<f64> = Vec::with_capacity(hit_list.len());
+        let mut esindex_list: Vec<usize> = Vec::with_capacity(hit_list.len());
+        let mut nes_list: Vec<f64> = Vec::with_capacity(hit_list.len());
+        let mut pvalue_list: Vec<f64> = Vec::with_capacity(hit_list.len());
+        let mut running_es_list: Vec<Vec<f64>> = Vec::with_capacity(hit_list.len());
+        for hits in hit_list {
+            let running_escores = running_es(&ranking, &hits);
+            let (esindex, escore) = es_and_index(&running_escores);
+            esindex_list.push(esindex);
+            es_list.push(escore);
+            running_es_list.push(running_escores);
+            // Do the permutations
+            let es_perm_list = gene_permutate(&escore, &self.nperm, &ranking, &hits);
+            // Compute the P-value
+            pvalue_list.push(compute_pval(&escore, &es_perm_list));
+            // rescale by the permutation mean
+            let mean = es_perm_list.iter().sum::<f64>() / (es_perm_list.len() as f64);
+            // Compute NES (Normalized ES)
+            nes_list.push(escore / mean);
+        }
+        list!(
+            indices = indices,
+            es = es_list,
+            es_index = esindex_list,
+            nes = nes_list,
+            pvalue = pvalue_list,
+            running_es = List::from_values(running_es_list)
+        )
+    }
 }
 
-fn running_es(metrics: &[f64], hits: &[bool]) -> Vec<f64> {
-    let scores_pos: f64 = hits
+fn running_es(ranking: &[f64], hits: &[bool]) -> Vec<f64> {
+    let sum_pos: f64 = hits
         .iter()
-        .zip(metrics.iter())
-        .filter_map(|(&hit, metric)| if hit { Some(metric) } else { None })
+        .zip(ranking.iter())
+        .filter_map(|(hit, metric)| if *hit { Some(metric) } else { None })
         .sum();
-    let norm_pos = 1.0 / scores_pos;
-    let norm_neg = 1.0 / ((metrics.len() - hits.len()) as f64);
+    let norm_pos = 1.0 / sum_pos;
+    let norm_neg = 1.0 / ((ranking.len() - hits.iter().filter(|hit| **hit).count()) as f64);
     hits.iter()
-        .zip(metrics.iter())
-        .map(|(&hit, metric)| if hit { metric * norm_pos } else { -norm_neg })
+        .zip(ranking.iter())
+        .map(|(hit, metric)| if *hit { metric * norm_pos } else { -norm_neg })
         .scan(0.0, |acc, score| {
             *acc += score;
             Some(*acc)
@@ -38,18 +91,70 @@ fn running_es(metrics: &[f64], hits: &[bool]) -> Vec<f64> {
         .collect()
 }
 
-fn es(running_es: &[f64]) -> f64 {}
+fn es(running_scores: &[f64]) -> f64 {
+    running_scores
+        .iter()
+        .fold(&0.0f64, |x, y| if x.abs() > y.abs() { x } else { y })
+        .to_owned()
+}
 
-fn gene_permutate(metrics: &[f64], hit_list: &[&[bool]], weight: f64) {
-    let mut metrics: Vec<f64> = metrics.iter().map(|x| x.abs().powf(weight)).collect();
-    metrics.sort_unstable_by(|a, b| f64::total_cmp(b, a));
-    let mut es_list: Vec<f64> = Vec::with_capacity(hit_list.len());
-    let mut running_es_list: Vec<Vec<f64>> = Vec::with_capacity(hit_list.len());
-    for hits in hit_list {
-        let running_escores = running_es(&metrics, hits);
-        es_list.push(es(&running_escores));
-        running_es_list.push(running_escores);
+fn gene_permutate(es_obs: &f64, nperm: &usize, ranking: &[f64], hits: &[bool]) -> Vec<f64> {
+    let mut rng = rng();
+    let out: Vec<f64>;
+    if *es_obs >= 0.0 {
+        out = (0..*nperm)
+            .filter_map(|_| {
+                let mut shuffled = hits.to_vec();
+                shuffled.shuffle(&mut rng);
+                let score = es(&running_es(&ranking, &shuffled));
+                if score >= 0.0 {
+                    Some(score)
+                } else {
+                    None
+                }
+            })
+            .collect();
+    } else {
+        out = (0..*nperm)
+            .filter_map(|_| {
+                let mut shuffled = hits.to_vec();
+                shuffled.shuffle(&mut rng);
+                let score = es(&running_es(&ranking, &shuffled));
+                if score <= 0.0 {
+                    Some(score)
+                } else {
+                    None
+                }
+            })
+            .collect();
     }
+    out
+}
 
-    for hits in hit_list {}
+fn es_and_index(running_scores: &[f64]) -> (usize, f64) {
+    let out = running_scores
+        .iter()
+        .enumerate()
+        .fold(
+            (0usize, &0.0f64),
+            |x, y| {
+                if x.1.abs() > y.1.abs() {
+                    x
+                } else {
+                    y
+                }
+            },
+        );
+    (out.0, out.1.to_owned())
+}
+
+fn compute_pval(es_obs: &f64, null: &[f64]) -> f64 {
+    let total: f64 = null.iter().count() as f64;
+    let n: f64;
+    if *es_obs >= 0.0 {
+        n = null.iter().filter(|score| *score >= es_obs).count() as f64;
+    } else {
+        n = null.iter().filter(|score| *score <= es_obs).count() as f64;
+    }
+    n / total
 }

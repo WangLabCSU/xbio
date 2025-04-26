@@ -11,3 +11,4 @@ name = 'enricher'
 
 [dependencies]
 extendr-api = { version = "0.8.0", features = [ "result_list" ] }
+rand = {version = "*"}

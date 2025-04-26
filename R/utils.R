@@ -72,9 +72,13 @@ call_rust_method <- function(class, method, ...) {
 #' @keywords internal
 call_rust_fn <- function(.NAME, ...) {
     # call the function
-    out <- .Call(.NAME, ...)
+    out <- .standalone_types_check_assert_call(.NAME, ...)
 
     # propagate error from rust --------------------
+    rust_unwrap(out)
+}
+
+rust_unwrap <- function(out) {
     if (!inherits(out, "extendr_result")) return(out) # styler: off
     if (is.null(.subset2(out, "ok"))) stop(.subset2(out, "err"), call. = FALSE)
     .subset2(out, "ok")
