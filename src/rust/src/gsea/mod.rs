@@ -1,5 +1,6 @@
 use extendr_api::prelude::*;
 use std::collections::HashSet;
+use std::env;
 
 // Module used to do the actual work, calcualte the enrichment scores
 mod algorithm;
@@ -24,7 +25,7 @@ fn gsea_gene_permutate(
     genesets: Robj,
     exponent: f64,
     nperm: usize,
-    // threads: usize,
+    threads: usize,
     seed: usize,
 ) -> Result<List> {
     //  Check and parse `identifiers`
@@ -55,8 +56,9 @@ fn gsea_gene_permutate(
         genesets: input_gs,
         exponent,
         nperm,
-        seed
+        seed,
     };
+    env::set_var("RAYON_NUM_THREADS", threads.to_string());
     Ok(input.gene_permutate())
 }
 

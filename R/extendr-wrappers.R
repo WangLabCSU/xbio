@@ -10,7 +10,7 @@
 #' @useDynLib enricher, .registration = TRUE
 NULL
 
-gsea_gene_permutate <- function(identifiers, metrics, genesets, exponent, nperm, seed) .Call(wrap__gsea_gene_permutate, identifiers, metrics, genesets, exponent, nperm, seed)
+gsea_gene_permutate <- function(identifiers, metrics, genesets, exponent, nperm, threads, seed) .Call(wrap__gsea_gene_permutate, identifiers, metrics, genesets, exponent, nperm, threads, seed)
 
 
 # nolint end

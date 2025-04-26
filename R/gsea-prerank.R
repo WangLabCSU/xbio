@@ -78,6 +78,7 @@ method(gsea0, list(gseaPrerank, class_any)) <- function(
         genesets = c(unclass(gs)), # remove attributes
         exponent = method@exponential,
         nperm = method@nperm,
+        threads = method@threads,
         seed = sample(1e6L, 1L)
     )
     out <- rust_unwrap(out)
