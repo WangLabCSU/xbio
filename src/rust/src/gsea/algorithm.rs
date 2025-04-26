@@ -56,13 +56,8 @@ impl<'a> GSEAInput<'a> {
             es_list.push(escore);
             running_es_list.push(running_escores);
             // Do the permutations
-            let es_perm_list = permutate_hits(
-                &escore,
-                &self.nperm,
-                &ranking,
-                &hits,
-                self.seed as u64,
-            );
+            let es_perm_list =
+                permutate_hits(&escore, &self.nperm, &ranking, &hits, self.seed as u64);
             // Compute the P-value
             pvalue_list.push(compute_pval(&escore, &es_perm_list));
             // rescale by the permutation mean
@@ -88,41 +83,25 @@ fn permutate_hits(
     hits: &[bool],
     seed: u64,
 ) -> Vec<f64> {
-    let out: Vec<f64>;
-    if *es_obs >= 0.0 {
-        out = (0..*nperm)
-            .into_par_iter()
-            .filter_map(|i| {
-                let mut rng = ChaCha8Rng::seed_from_u64(seed);
-                rng.set_stream(i as u64);
-                let mut shuffled = hits.to_vec();
-                shuffled.shuffle(&mut rng);
-                let score = es(&running_es(&ranking, &shuffled));
-                if score >= 0.0 {
-                    Some(score)
-                } else {
-                    None
-                }
-            })
-            .collect();
-    } else {
-        out = (0..*nperm)
-            .into_par_iter()
-            .filter_map(|i| {
-                let mut rng = ChaCha8Rng::seed_from_u64(seed);
-                rng.set_stream(i as u64);
-                let mut shuffled = hits.to_vec();
-                shuffled.shuffle(&mut rng);
-                let score = es(&running_es(&ranking, &shuffled));
-                if score <= 0.0 {
-                    Some(score)
-                } else {
-                    None
-                }
-            })
-            .collect();
-    }
-    out
+    let hits_vec = hits.to_vec();
+    let direction = es_obs >= &0.0;
+    (0..*nperm)
+        .into_par_iter()
+        .filter_map(|i| {
+            let mut rng = ChaCha8Rng::seed_from_u64(seed);
+            rng.set_stream(i as u64);
+
+            let mut shuffled = hits_vec.clone();
+            shuffled.shuffle(&mut rng);
+
+            let score = es(&running_es(ranking, &shuffled));
+            if direction == (score >= 0.0) {
+                Some(score)
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 fn running_es(ranking: &[f64], hits: &[bool]) -> Vec<f64> {
