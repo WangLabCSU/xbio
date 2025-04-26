@@ -45,7 +45,7 @@ gseaPrerank <- new_class("gseaPrerank", gseaPrerank0,
                 prop(self, "nperm") <- value
                 self
             },
-            default = 2000L
+            default = 1000L
         ),
         exponential = prop_number_decimal(
             setter = function(self, value) {

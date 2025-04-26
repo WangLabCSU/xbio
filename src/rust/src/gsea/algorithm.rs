@@ -1,4 +1,3 @@
-use rand::rng;
 use rand::seq::SliceRandom;
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use rayon::prelude::*;
@@ -122,27 +121,21 @@ fn running_es(ranking: &[f64], hits: &[bool]) -> Vec<f64> {
         .collect()
 }
 
-fn es(running_scores: &[f64]) -> f64 {
-    running_scores
+fn es(running: &[f64]) -> f64 {
+    running
         .iter()
         .fold(&0.0f64, |x, y| if x.abs() > y.abs() { x } else { y })
         .to_owned()
 }
 
-fn es_and_index(running_scores: &[f64]) -> (usize, f64) {
-    let out = running_scores
-        .iter()
-        .enumerate()
-        .fold(
-            (0usize, &0.0f64),
-            |x, y| {
-                if x.1.abs() > y.1.abs() {
-                    x
-                } else {
-                    y
-                }
-            },
-        );
+fn es_and_index(running: &[f64]) -> (usize, f64) {
+    let out = running.iter().enumerate().fold((0usize, &0.0f64), |x, y| {
+        if x.1.abs() > y.1.abs() {
+            x
+        } else {
+            y
+        }
+    });
     (out.0, out.1.to_owned())
 }
 
