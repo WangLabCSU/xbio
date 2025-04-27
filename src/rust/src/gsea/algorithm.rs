@@ -49,14 +49,21 @@ impl<'a> GSEAInput<'a> {
         let mut pvalue_list: Vec<f64> = Vec::with_capacity(hit_list.len());
         let mut running_es_list: Vec<Vec<f64>> = Vec::with_capacity(hit_list.len());
         for hits in hit_list {
-            let running_escores = running_es(&ranking, &hits);
+            let norm_neg = 1.0 / ((ranking.len() - hits.iter().filter(|hit| **hit).count()) as f64);
+            let running_escores = running_es(&ranking, &hits, &norm_neg);
             let (esindex, escore) = es_and_index(&running_escores);
             esindex_list.push(esindex);
             es_list.push(escore);
             running_es_list.push(running_escores);
             // Do the permutations
-            let es_perm_list =
-                permutate_hits(&escore, &self.nperm, &ranking, &hits, self.seed as u64);
+            let es_perm_list = permutate_hits(
+                &escore,
+                &self.nperm,
+                &ranking,
+                &norm_neg,
+                &hits,
+                self.seed as u64,
+            );
             // Compute the P-value
             pvalue_list.push(compute_pval(&escore, &es_perm_list));
             // rescale by the permutation mean
@@ -79,12 +86,12 @@ fn permutate_hits(
     es_obs: &f64,
     nperm: &usize,
     ranking: &[f64],
+    norm_neg: &f64,
     hits: &[bool],
     seed: u64,
 ) -> Vec<f64> {
     let hits_vec = hits.to_vec();
     let direction = es_obs >= &0.0;
-    let norm_neg = 1.0 / (hits.iter().filter(|hit| **hit).count() as f64);
     (0..*nperm)
         .into_par_iter()
         .filter_map(|i| {
@@ -94,7 +101,7 @@ fn permutate_hits(
             let mut shuffled = hits_vec.clone();
             shuffled.shuffle(&mut rng);
 
-            let score = es(ranking, &shuffled, &norm_neg);
+            let score = es(ranking, &shuffled, norm_neg);
             if direction == (score >= 0.0) {
                 Some(score)
             } else {
@@ -104,16 +111,15 @@ fn permutate_hits(
         .collect()
 }
 
-fn running_es(ranking: &[f64], hits: &[bool]) -> Vec<f64> {
+fn running_es(ranking: &[f64], hits: &[bool], norm_neg: &f64) -> Vec<f64> {
     let sum_pos: f64 = hits
         .iter()
-        .zip(ranking.iter())
-        .filter_map(|(hit, metric)| if *hit { Some(metric) } else { None })
+        .zip(ranking)
+        .filter_map(|(hit, metric)| hit.then_some(metric))
         .sum();
     let norm_pos = 1.0 / sum_pos;
-    let norm_neg = 1.0 / ((ranking.len() - hits.iter().filter(|hit| **hit).count()) as f64);
     hits.iter()
-        .zip(ranking.iter())
+        .zip(ranking)
         .map(|(hit, metric)| if *hit { metric * norm_pos } else { -norm_neg })
         .scan(0.0, |acc, score| {
             *acc += score;
@@ -136,12 +142,12 @@ fn es_and_index(running: &[f64]) -> (usize, f64) {
 fn es(ranking: &[f64], hits: &[bool], norm_neg: &f64) -> f64 {
     let sum_pos: f64 = hits
         .iter()
-        .zip(ranking.iter())
-        .filter_map(|(hit, metric)| if *hit { Some(metric) } else { None })
+        .zip(ranking)
+        .filter_map(|(hit, metric)| hit.then_some(metric))
         .sum();
     let norm_pos = 1.0 / sum_pos;
     hits.iter()
-        .zip(ranking.iter())
+        .zip(ranking)
         .map(|(hit, metric)| if *hit { metric * norm_pos } else { -norm_neg })
         .fold(0.0f64, |old, score| -> f64 {
             let new = old + score;
