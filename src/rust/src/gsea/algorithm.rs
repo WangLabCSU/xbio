@@ -26,16 +26,16 @@ impl<'a> GSEAInput<'a> {
         indices.sort_unstable_by(|&a, &b| f64::total_cmp(&metrics[b], &self.metrics[a]));
 
         let mut ranking: Vec<f64> = metrics
-            .iter()
+            .par_iter()
             .map(|x| x.abs().powf(self.exponent))
             .collect();
 
-        let ids: Vec<_> = indices.iter().map(|&i| &self.identifiers[i]).collect();
-        ranking = indices.iter().map(|&i| ranking[i]).collect();
+        let ids: Vec<_> = indices.par_iter().map(|&i| &self.identifiers[i]).collect();
+        ranking = indices.par_iter().map(|&i| ranking[i]).collect();
 
         let hit_list = self
             .genesets
-            .iter()
+            .par_iter()
             .map(|gs| ids.iter().map(|id| gs.contains(*id)).collect::<Vec<bool>>())
             .collect();
         (indices, ranking, hit_list)
@@ -84,6 +84,7 @@ fn permutate_hits(
 ) -> Vec<f64> {
     let hits_vec = hits.to_vec();
     let direction = es_obs >= &0.0;
+    let norm_neg = 1.0 / (hits.iter().filter(|hit| **hit).count() as f64);
     (0..*nperm)
         .into_par_iter()
         .filter_map(|i| {
@@ -93,7 +94,7 @@ fn permutate_hits(
             let mut shuffled = hits_vec.clone();
             shuffled.shuffle(&mut rng);
 
-            let score = es(&running_es(ranking, &shuffled));
+            let score = es(ranking, &shuffled, &norm_neg);
             if direction == (score >= 0.0) {
                 Some(score)
             } else {
@@ -121,13 +122,6 @@ fn running_es(ranking: &[f64], hits: &[bool]) -> Vec<f64> {
         .collect()
 }
 
-fn es(running: &[f64]) -> f64 {
-    running
-        .iter()
-        .fold(&0.0f64, |x, y| if x.abs() > y.abs() { x } else { y })
-        .to_owned()
-}
-
 fn es_and_index(running: &[f64]) -> (usize, f64) {
     let out = running.iter().enumerate().fold((0usize, &0.0f64), |x, y| {
         if x.1.abs() > y.1.abs() {
@@ -137,6 +131,26 @@ fn es_and_index(running: &[f64]) -> (usize, f64) {
         }
     });
     (out.0, out.1.to_owned())
+}
+
+fn es(ranking: &[f64], hits: &[bool], norm_neg: &f64) -> f64 {
+    let sum_pos: f64 = hits
+        .iter()
+        .zip(ranking.iter())
+        .filter_map(|(hit, metric)| if *hit { Some(metric) } else { None })
+        .sum();
+    let norm_pos = 1.0 / sum_pos;
+    hits.iter()
+        .zip(ranking.iter())
+        .map(|(hit, metric)| if *hit { metric * norm_pos } else { -norm_neg })
+        .fold(0.0f64, |old, score| -> f64 {
+            let new = old + score;
+            if old.abs() > new.abs() {
+                old
+            } else {
+                new
+            }
+        })
 }
 
 fn compute_pval(es_obs: &f64, null: &[f64]) -> f64 {
