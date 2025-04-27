@@ -47,10 +47,10 @@ gseaPrerank <- new_class("gseaPrerank", gseaPrerank0,
             },
             default = 1000L
         ),
-        exponential = prop_number_decimal(
+        exponent = prop_number_decimal(
             setter = function(self, value) {
                 if (is.numeric(value)) value <- as.double(value)
-                prop(self, "exponential") <- value
+                prop(self, "exponent") <- value
                 self
             },
             default = 1,
@@ -76,7 +76,7 @@ method(gsea0, list(gseaPrerank, class_any)) <- function(
         names(object),
         object,
         genesets = c(unclass(gs)), # remove attributes
-        exponent = method@exponential,
+        exponent = method@exponent,
         nperm = method@nperm,
         threads = method@threads,
         seed = sample(1e6L, 1L)
@@ -117,10 +117,10 @@ gseaSimple <- new_class(
             max = quote(as.double(parallel::detectCores())),
             default = 1L
         ),
-        exponential = prop_number_decimal(
+        exponent = prop_number_decimal(
             setter = function(self, value) {
                 if (is.numeric(value)) value <- as.double(value)
-                prop(self, "exponential") <- value
+                prop(self, "exponent") <- value
                 self
             },
             default = 1,
@@ -141,7 +141,7 @@ method(gsea0, list(gseaSimple, class_any)) <- function(
         scoreType = method@score_type,
         nperm = method@nperm,
         nproc = method@threads,
-        gseaParam = method@exponential
+        gseaParam = method@exponent
     )
 }
 
@@ -169,11 +169,11 @@ gseaMultilevel <- new_class(
         )
     ),
     constructor = function(sample_size = 101L, eps = 1e-50,
-                           nperm = 1L, score_type = "std", threads = 1L, exponential = 1) {
+                           nperm = 1L, score_type = "std", threads = 1L, exponent = 1) {
         new_object(
             gseaSimple(
                 nperm = nperm, score_type = score_type,
-                threads = threads, exponential = exponential
+                threads = threads, exponent = exponent
             ),
             sample_size = sample_size,
             eps = eps
@@ -195,6 +195,6 @@ method(gsea0, list(gseaMultilevel, class_any)) <- function(
         scoreType = method@score_type,
         nPermSimple = method@nperm,
         nproc = method@threads,
-        gseaParam = method@exponential
+        gseaParam = method@exponent
     )
 }
