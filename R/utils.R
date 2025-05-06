@@ -64,21 +64,19 @@ check_bioc_installed <- function(pkg, reason = NULL, ...) {
     )
 }
 
+RUST_CALL <- .Call
+
 #' @keywords internal
-call_rust_method <- function(class, method, ...) {
-    call_rust_fn(sprintf("wrap__%s__%s", class, method), ...)
+rust_method <- function(class, method, ...) {
+    rust_call(sprintf("%s__%s", class, method), ...)
 }
 
 #' @keywords internal
-call_rust_fn <- function(.NAME, ...) {
+rust_call <- function(.NAME, ...) {
     # call the function
-    out <- .standalone_types_check_assert_call(.NAME, ...)
+    out <- RUST_CALL(sprintf("wrap__%s", .NAME), ...)
 
     # propagate error from rust --------------------
-    rust_unwrap(out)
-}
-
-rust_unwrap <- function(out) {
     if (!inherits(out, "extendr_result")) return(out) # styler: off
     if (is.null(.subset2(out, "ok"))) stop(.subset2(out, "err"), call. = FALSE)
     .subset2(out, "ok")

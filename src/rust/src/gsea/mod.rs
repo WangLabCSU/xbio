@@ -1,11 +1,13 @@
-use extendr_api::prelude::*;
 use std::collections::HashSet;
 use std::env;
 
+use extendr_api::prelude::*;
+
 // Module used to do the actual work, calcualte the enrichment scores
 mod algorithm;
-
-use algorithm::GSEAInput;
+mod input;
+mod permutate_gene;
+mod permutate_sample;
 
 #[extendr]
 // GSEA gene permutation analysis.
@@ -21,45 +23,47 @@ use algorithm::GSEAInput;
 // A list containing enrichment results.
 fn gsea_gene_permutate(
     identifiers: Robj,
-    metrics: Vec<f64>,
+    metrics: Robj,
     genesets: Robj,
     exponent: f64,
     nperm: usize,
     threads: usize,
     seed: usize,
-) -> Result<List> {
+) -> Result<algorithm::GSEAOutput> {
     //  Check and parse `identifiers`
     let identifiers: Vec<&str> = identifiers
         .as_str_vector()
-        .ok_or(Error::ExpectedRstr(r!("`identifiers` must be a character")))?;
+        .ok_or("`identifiers` must be a character")?;
+
+    //  Check and parse `metrics`
+    let metrics = metrics
+        .as_real_slice()
+        .ok_or("`metrics` must be a numeric")?;
 
     // Check and parse `genesets`
-    let geneset_list = genesets
-        .as_list()
-        .ok_or(Error::ExpectedList(r!("`genesets` must be a list")))?;
-    let mut input_gs: Vec<HashSet<&str>> = Vec::with_capacity(geneset_list.len());
+    let geneset_list = genesets.as_list().ok_or("`genesets` must be a list")?;
+    let mut input_gs: Vec<HashSet<&str>> =
+        Vec::with_capacity(geneset_list.len());
     for geneset in geneset_list.as_slice() {
         let gs = geneset
             .as_str_vector()
-            .ok_or(Error::ExpectedRstr(r!(
-                "`genesets` must be a list of character"
-            )))?
+            .ok_or("`genesets` must be a list of character")?
             .into_iter()
             .collect::<HashSet<&str>>();
         input_gs.push(gs);
     }
 
     // Run permutation and return result
-    let input = GSEAInput {
-        identifiers,
+    env::set_var("RAYON_NUM_THREADS", threads.to_string());
+    let out = permutate_gene::gsea_gene(
+        &identifiers,
         metrics,
-        genesets: input_gs,
+        &input_gs,
         exponent,
         nperm,
         seed,
-    };
-    env::set_var("RAYON_NUM_THREADS", threads.to_string());
-    Ok(input.gene_permutate())
+    );
+    Ok(out)
 }
 
 extendr_module! {

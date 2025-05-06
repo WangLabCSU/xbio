@@ -1,5 +1,5 @@
-gsea <- function(gs, object, method, ...,
-                 min_size = NULL, max_size = NULL) {
+enricher <- function(gs, object, method, ...,
+                     min_size = NULL, max_size = NULL) {
     assert_s3_class(gs, "enricher_genesets")
     if (!all(keep <- list_sizes(gs) > 0L)) {
         cli::cli_warn("Removing {sum(!keep)} empty gene set{?s}")
@@ -12,17 +12,18 @@ gsea <- function(gs, object, method, ...,
         max_size = max_size
     )
     if (vec_size(gs) == 0L) cli::cli_abort("No gene sets to use")
-    gsea0(method, object, ..., gs = gs)
+    enricher0(method, object, ..., gs = gs)
 }
 
-gsea0 <- new_generic(
-    "gsea0", c("method", "object"),
+enricher0 <- new_generic(
+    "enricher0", c("method", "object"),
     function(method, object, ..., gs) S7_dispatch()
 )
 
-method(gsea0, list(class_any, class_any)) <- function(method, object, ..., gs) {
+method(enricher0, list(class_any, class_any)) <- function(
+    method, object, ..., gs) {
     cli::cli_abort(paste(
-        "No gsea method for the combined signature:",
+        "No {.field enricher} method for the combined signature:",
         "{.obj_type_friendly {object}} and {.obj_type_friendly {method}}"
     ))
 }
