@@ -78,7 +78,6 @@ keggdb_download <- function(database, organism) {
         new_data_frame(list(
             ids = pathways,
             terms = terms[pathways],
-            descriptions = rep_len(NA_character_, length(pathways)),
             genes = genes
         ), class = sprintf("%s_kegg_genesets", pkg_nm()))
     } else {

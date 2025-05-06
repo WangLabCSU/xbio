@@ -184,10 +184,13 @@ vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
             descriptions = descriptions
         ))
         keys <- .subset2(locs, "key")
+        if (all(is.na(descriptions <- .subset2(keys, "descriptions")))) {
+            descriptions <- NULL
+        }
         new_genesets(
             vec_chop(x[[3L]], .subset2(locs, "loc")),
             ids = .subset2(keys, "ids"),
-            descriptions = .subset2(keys, "descriptions")
+            descriptions = descriptions
         )
     } else if (ncol(x) == 4L) {
         ids <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
@@ -198,11 +201,17 @@ vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
             descriptions = descriptions
         ))
         keys <- .subset2(locs, "key")
+        if (all(is.na(terms <- .subset2(keys, "terms")))) {
+            terms <- NULL
+        }
+        if (all(is.na(descriptions <- .subset2(keys, "descriptions")))) {
+            descriptions <- NULL
+        }
         new_genesets(
             vec_chop(x[[4L]], .subset2(locs, "loc")),
             ids = .subset2(keys, "ids"),
-            terms = .subset2(keys, "terms"),
-            descriptions = .subset2(keys, "descriptions")
+            terms = terms,
+            descriptions = descriptions
         )
     } else {
         cli::cli_abort(paste(
@@ -213,8 +222,15 @@ vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
 }
 
 #' @export
-vec_cast.enricher_genesets.enricher_kegg_genesets <-
-    vec_cast.enricher_genesets.data.frame
+vec_cast.enricher_genesets.enricher_kegg_genesets <- function(x, to, ...) {
+    vec_cast.enricher_genesets.data.frame(new_data_frame(list(
+        ids = .subset2(x, "ids"),
+        terms = .subset2(x, "terms"),
+        descriptions = rep_len(NA_character_, vec_size(x)),
+        genes = .subset2(x, "genes")
+    )), to, ...)
+}
+
 
 #' @export
 as.data.frame.enricher_genesets <- function(x, ...) {
