@@ -1,7 +1,7 @@
 prop_match <- function(choices, ..., default = NULL) {
     new_property(class_character,
         validator = function(value) {
-            if (any(value == choices)) {
+            if (rlang::is_string(value) && any(value == choices)) {
                 return(NULL)
             }
             paste("must be one of", oxford_or(choices))

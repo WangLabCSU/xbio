@@ -73,11 +73,12 @@ keggdb_download <- function(database, organism) {
     } else if (identical(database, "genesets")) {
         pathway2genes <- KEGGREST::keggLink(organism, "pathway")
         pathways <- sub("^[^:]+:", "", names(pathway2genes))
-        descriptions <- KEGGREST::keggList("pathway", organism)
+        terms <- KEGGREST::keggList("pathway", organism)
         genes <- sub("^[^:]+:", "", pathway2genes)
         new_data_frame(list(
-            pathways = pathways,
-            descriptions = descriptions[pathways],
+            ids = pathways,
+            terms = terms[pathways],
+            descriptions = rep_len(NA_character_, length(pathways)),
             genes = genes
         ), class = sprintf("%s_kegg_genesets", pkg_nm()))
     } else {

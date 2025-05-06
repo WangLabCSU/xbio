@@ -1,16 +1,32 @@
 #' @importFrom rlang caller_arg
 new_genesets <- function(genesets = list(), ...,
-                         terms = NULL, descriptions = NULL,
+                         ids = NULL, terms = NULL, descriptions = NULL,
                          arg_genesets = caller_arg(genesets),
+                         arg_ids = caller_arg(ids),
                          arg_terms = caller_arg(terms),
                          arg_descriptions = caller_arg(descriptions)) {
-    if (is.null(terms)) {
+    if (is.null(ids)) {
         if (!rlang::is_named2(genesets)) {
             cli::cli_abort(paste(
-                "{.arg {arg_terms}} must be provided or {.arg {arg_genesets}}",
+                "{.arg {arg_ids}} must be provided or {.arg {arg_genesets}}",
                 "should be named"
             ))
         }
+        ids <- names(genesets)
+    } else {
+        ids <- vec_cast(ids, character(), x_arg = arg_ids)
+        if (vec_size(ids) != vec_size(genesets)) {
+            cli::cli_abort(paste(
+                "{.arg {arg_ids}} ({vec_size(ids)}) must have",
+                "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
+            ))
+        }
+        if (vec_any_missing(ids) || any(ids == "")) {
+            cli::cli_abort("{.arg ids} cannot be missing or empty.")
+        }
+    }
+    if (is.null(terms)) {
+        terms <- rep_len(list(NULL), vec_size(genesets))
     } else {
         terms <- vec_cast(terms, character(), x_arg = arg_terms)
         if (vec_size(terms) != vec_size(genesets)) {
@@ -19,12 +35,10 @@ new_genesets <- function(genesets = list(), ...,
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
-        if (vec_any_missing(terms) || any(terms == "")) {
-            cli::cli_abort("{.arg terms} cannot be missing or empty.")
-        }
-        names(genesets) <- terms
     }
-    if (!is.null(descriptions)) {
+    if (is.null(descriptions)) {
+        descriptions <- rep_len(list(NULL), vec_size(genesets))
+    } else {
         descriptions <- vec_cast(
             descriptions, character(),
             x_arg = arg_descriptions
@@ -36,18 +50,11 @@ new_genesets <- function(genesets = list(), ...,
             ))
         }
     }
-    # for a single geneset, it should be a character
-    genesets <- lapply(genesets, function(geneset) {
-        out <- as.character(unlist(geneset, use.names = FALSE))
-        vec_unique(out)
-    })
-    # we use new class to ensure `descriptions` are parallel with the data
-    new_vctr(
-        genesets,
-        descriptions = descriptions,
-        ...,
-        class = "enricher_genesets"
-    )
+    genesets <- .mapply(function(geneset, term, description) {
+        new_geneset(geneset, term = term, description = description)
+    }, list(geneset = genesets, term = terms, description = descriptions), NULL)
+    names(genesets) <- ids
+    new_vctr(genesets, ..., class = "enricher_genesets")
 }
 
 #' @export
@@ -57,41 +64,9 @@ new_genesets <- function(genesets = list(), ...,
     }
     value <- vec_cast(value, character(), x_arg = "names")
     if (vec_any_missing(value) || any(value == "")) {
-        cli::cli_abort("Names cannot be missing or empty.")
+        cli::cli_abort("names cannot be missing or empty.")
     }
     NextMethod()
-}
-
-#' @export
-vec_proxy.enricher_genesets <- function(x, ...) {
-    descriptions <- attr(x, "descriptions", exact = TRUE)
-    terms <- names(x)
-    genesets <- unclass(x)
-    attributes(genesets) <- NULL
-    if (is.null(descriptions)) {
-        new_data_frame(list(terms = terms, genesets = genesets))
-    } else {
-        new_data_frame(
-            list(
-                terms = terms,
-                descriptions = descriptions,
-                genesets = genesets
-            )
-        )
-    }
-}
-
-#' @export
-vec_restore.enricher_genesets <- function(x, to, ...) {
-    # restore the terms and descriptions from the proxy
-    terms <- .subset2(x, "terms")
-    attr(to, "descriptions") <- .subset2(x, "descriptions")
-
-    # restore the attributes for the genesets
-    x <- .subset2(x, "genesets")
-    out <- NextMethod()
-    names(out) <- terms
-    out
 }
 
 #' @export
@@ -101,36 +76,77 @@ obj_print_header.enricher_genesets <- function(x, ...) {
 }
 
 #' @export
-obj_print_data.enricher_genesets <- function(x, ...) {
-    data <- vec_data(x)
-    size <- vec_size(data)
+obj_print_data.enricher_genesets <- function(x, geneset_trunc = 6L,
+                                             trunc = 6L, ...) {
+    size <- vec_size(x)
     if (size == 0L) return(invisible(x)) # styler: off
-    if (size > 6L) {
-        data <- vec_c(vec_slice(data, 1:3), vec_slice(data, size - (3:1)))
+    trunc <- max(as.integer(trunc), 2L)
+    if (size > trunc) {
+        before <- ceiling(trunc / 2L)
+        after <- rev(seq_len(trunc - before))
+        before <- seq_len(before)
+        x <- vec_c(vec_slice(x, before), vec_slice(x, size - after))
     }
-    content <- vapply(
-        .subset2(data, "genesets"),
-        function(geneset) {
-            if (vec_size(geneset) > 6L) {
-                geneset <- vec_c(
-                    vec_slice(geneset, 1:3), "...",
-                    vec_slice(geneset, vec_size(geneset) - (3:1))
-                )
-            }
-            paste0(geneset, collapse = ", ")
-        },
-        character(1L),
-        USE.NAMES = FALSE
-    )
+    geneset_trunc <- max(as.integer(geneset_trunc), 2L)
+    geneset_before <- ceiling(geneset_trunc / 2L)
+    geneset_after <- rev(seq_len(geneset_trunc - geneset_before))
+    geneset_before <- seq_len(geneset_before)
+    content <- vapply(x, function(geneset) {
+        geneset <- vec_cast(geneset, character())
+        if (vec_size(geneset) > geneset_trunc) {
+            geneset <- vec_c(
+                vec_slice(geneset, geneset_before), "...",
+                vec_slice(geneset, vec_size(geneset) - geneset_after)
+            )
+        }
+        paste0(geneset, collapse = ", ")
+    }, character(1L), USE.NAMES = FALSE)
     output <- paste(
-        format(.subset2(data, "terms"), justify = "right"),
+        format(names(x), justify = "right"),
         format(content, justify = "left"),
         sep = ": "
     )
-    if (size > 6L) output <- vec_c(output[1:3], "...", output[4:6])
+    if (size > trunc) output <- vec_c(output[before], "...", output[-before])
     cat(output, sep = "\n")
 }
 
+##################################################
+#' @export
+vec_ptype2.enricher_genesets.enricher_genesets <- function(x, y, ...) {
+    x
+}
+
+#' @export
+vec_ptype2.enricher_genesets.NULL <- function(x, y, ...) {
+    x
+}
+
+#' @export
+vec_ptype2.NULL.enricher_genesets <- function(x, y, ...) {
+    y
+}
+
+#' @export
+vec_ptype2.enricher_genesets.data.frame <- function(x, y, ...) {
+    x
+}
+
+#' @export
+vec_ptype2.data.frame.enricher_genesets <- function(x, y, ...) {
+    y
+}
+
+#' @export
+vec_ptype2.enricher_genesets.list <- function(x, y, ...) {
+    x
+}
+
+#' @export
+vec_ptype2.list.enricher_genesets <- function(x, y, ...) {
+    y
+}
+
+##################################################
 #' @export
 vec_cast.enricher_genesets.enricher_genesets <- function(x, to, ...) {
     x
@@ -138,36 +154,60 @@ vec_cast.enricher_genesets.enricher_genesets <- function(x, to, ...) {
 
 #' @export
 vec_cast.data.frame.enricher_genesets <- function(x, to, ...) {
-    vec_proxy(x)
+    ids <- names(x)
+    terms <- gs_terms(x)
+    descriptions <- gs_descs(x)
+    genesets <- lapply(x, vec_cast, to = character())
+    new_data_frame(list(
+        ids = ids,
+        terms = terms,
+        descriptions = descriptions,
+        genesets = genesets
+    ))
 }
 
 #' @export
 vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
     # Nest the term and descriptions columns
     if (ncol(x) == 2L) {
-        terms <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
-        locs <- vec_group_loc(terms)
+        ids <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
+        locs <- vec_group_loc(ids)
         new_genesets(
             vec_chop(x[[2L]], .subset2(locs, "loc")),
-            terms = .subset2(locs, "key")
+            ids = .subset2(locs, "key")
         )
     } else if (ncol(x) == 3L) {
-        terms <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
+        ids <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
         descriptions <- vec_cast(x[[2L]], character(), x_arg = "the 2nd column")
         locs <- vec_group_loc(data_frame(
-            terms = terms,
+            ids = ids,
             descriptions = descriptions
         ))
         keys <- .subset2(locs, "key")
         new_genesets(
             vec_chop(x[[3L]], .subset2(locs, "loc")),
+            ids = .subset2(keys, "ids"),
+            descriptions = .subset2(keys, "descriptions")
+        )
+    } else if (ncol(x) == 4L) {
+        ids <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
+        terms <- vec_cast(x[[2L]], character(), x_arg = "the 2nd column")
+        descriptions <- vec_cast(x[[3L]], character(), x_arg = "the 3nd column")
+        locs <- vec_group_loc(data_frame(
+            ids = ids, terms = terms,
+            descriptions = descriptions
+        ))
+        keys <- .subset2(locs, "key")
+        new_genesets(
+            vec_chop(x[[4L]], .subset2(locs, "loc")),
+            ids = .subset2(keys, "ids"),
             terms = .subset2(keys, "terms"),
             descriptions = .subset2(keys, "descriptions")
         )
     } else {
         cli::cli_abort(paste(
             "Conversion to {.cls genesets} require a data frame",
-            "of 2 or 3 columns"
+            "of 2, 3, or 4 columns"
         ))
     }
 }
@@ -182,12 +222,30 @@ as.data.frame.enricher_genesets <- function(x, ...) {
 }
 
 #' @export
-vec_cast.list.enricher_genesets <- function(x, to, ...) unclass(x)
+vec_cast.list.enricher_genesets <- function(x, to, ...) vec_proxy(x)
 
 #' @export
 vec_cast.enricher_genesets.list <- function(x, to, ...) {
     if (!rlang::is_named2(x)) {
         cli::cli_abort("Conversion to {.cls genesets} requires a named list.")
+    }
+    if (is.null(terms <- attr(x, "terms"))) {
+        terms <- vapply(x, function(e) {
+            if (is.null(o <- attr(x, "term"))) {
+                NA_character_
+            } else {
+                as.character(o)
+            }
+        }, character(1L), USE.NAMES = FALSE)
+        if (all(is.na(terms))) terms <- NULL
+    } else {
+        terms <- as.character(terms)
+        if (vec_size(x) != vec_size(terms)) {
+            cli::cli_abort(paste(
+                "attribute {.field terms} must be",
+                "the same length of the input list."
+            ))
+        }
     }
     if (is.null(descriptions <- attr(x, "descriptions"))) {
         descriptions <- vapply(x, function(e) {
@@ -201,7 +259,10 @@ vec_cast.enricher_genesets.list <- function(x, to, ...) {
     } else {
         descriptions <- as.character(descriptions)
         if (vec_size(x) != vec_size(descriptions)) {
-            descriptions <- NULL
+            cli::cli_abort(paste(
+                "attribute {.field descriptions} must be",
+                "the same length of the input list."
+            ))
         }
     }
     new_genesets(x, descriptions = descriptions)
@@ -216,46 +277,18 @@ vec_math.enricher_genesets <- function(.fn, .x, ...) {
 }
 
 #' @export
-`[.enricher_genesets` <- function(x, i, ...) {
-    if (!missing(...)) {
-        cli::cli_abort(
-            "Can't index {.cls genesets} on dimensions greater than 1."
-        )
-    }
-    data <- new_data_frame(vec_proxy(x), row.names = names(x))
-    vec_restore(vec_slice(data, rlang::maybe_missing(i)), x)
-}
-
-#' @export
-`[[.enricher_genesets` <- function(x, i, ...) {
-    i <- vec_as_location2(i, n = length(x), names = names(x))
-    out <- do.call(`[[`, list(vec_cast(x, list()), i, ...))
-    descriptions <- attr(x, "descriptions", exact = TRUE)
-    if (!is.null(descriptions)) {
-        attr(out, "description") <- descriptions[i]
-    }
-    out
-}
-
-#' @export
-`$.enricher_genesets` <- `[[.enricher_genesets`
-
-#' @export
 `length<-.enricher_genesets` <- function(x, value) {
-    data <- vec_proxy(x)
-    size <- vec_size(data)
+    size <- vec_size(x)
     if (value > size) {
         cli::cli_abort(
             "Cannot set length greater than the current number of gene sets."
         )
-    } else {
-        i <- seq_len(value)
     }
-    vec_restore(vec_slice(data, i), x)
+    vec_slice(x, seq_len(value))
 }
 
 #' @export
 rep.enricher_genesets <- function(x, ...) {
-    out <- lapply(vec_proxy(x), base::rep, ...)
+    out <- NextMethod()
     vec_restore(out, x)
 }

@@ -5,7 +5,7 @@ test_that("creates new_genesets with named gene sets", {
     expect_named(obj, c("a", "b"))
 })
 
-test_that("errors when terms are missing and genesets are unnamed", {
+test_that("errors when ids are missing and genesets are unnamed", {
     gs <- list(c("A", "B"), c("C", "D"))
     expect_error(
         new_genesets(gs),
@@ -13,38 +13,38 @@ test_that("errors when terms are missing and genesets are unnamed", {
     )
 })
 
-test_that("assigns terms as names when provided", {
+test_that("assigns ids as names when provided", {
     gs <- list(c("A", "B"), c("C", "D"))
-    terms <- c("Set1", "Set2")
-    obj <- new_genesets(gs, terms = terms)
-    expect_named(obj, terms)
+    ids <- c("Set1", "Set2")
+    obj <- new_genesets(gs, ids = ids)
+    expect_named(obj, ids)
 })
 
-test_that("errors when terms and genesets have mismatched lengths", {
+test_that("errors when ids and genesets have mismatched lengths", {
     gs <- list(c("A", "B"), c("C", "D"))
-    terms <- c("Set1")
+    ids <- c("Set1")
     expect_error(
-        new_genesets(gs, terms = terms),
+        new_genesets(gs, ids = ids),
         regexp = "must have the same length"
     )
 })
 
 test_that("assigns descriptions when provided", {
     gs <- list(c("A", "B"), c("C", "D"))
-    terms <- c("Set1", "Set2")
+    ids <- c("Set1", "Set2")
     desc <- c("desc1", "desc2")
-    obj <- new_genesets(gs, terms = terms, descriptions = desc)
+    obj <- new_genesets(gs, ids = ids, descriptions = desc)
     expect_s3_class(obj, "enricher_genesets")
-    expect_named(obj, terms)
-    expect_identical(attr(obj, "descriptions"), desc)
+    expect_named(obj, ids)
+    expect_identical(gs_descs(obj), desc)
 })
 
 test_that("errors when descriptions and genesets have mismatched lengths", {
     gs <- list(c("A", "B"), c("C", "D"))
-    terms <- c("Set1", "Set2")
+    ids <- c("Set1", "Set2")
     desc <- c("desc1") # too short
     expect_error(
-        new_genesets(gs, terms = terms, descriptions = desc),
+        new_genesets(gs, ids = ids, descriptions = desc),
         regexp = "must have the same length"
     )
 })
@@ -53,7 +53,7 @@ test_that("errors when descriptions and genesets have mismatched lengths", {
 test_that("names<-.enricher_genesets cworks for valid input", {
     gs <- list(c("A", "B"), c("C"))
     obj <- new_genesets(gs,
-        terms = c("old1", "old2"),
+        ids = c("old1", "old2"),
         descriptions = c("d1", "d2")
     )
 
@@ -64,13 +64,13 @@ test_that("names<-.enricher_genesets cworks for valid input", {
 test_that("names<-.enricher_genesets preserves descriptions when renaming", {
     gs <- list(c("A", "B"), c("C"))
     obj <- new_genesets(gs,
-        terms = c("a", "b"),
+        ids = c("a", "b"),
         descriptions = c("desc1", "desc2")
     )
 
     names(obj) <- c("x", "y")
     expect_named(obj, c("x", "y"))
-    expect_equal(attr(obj, "descriptions"), c("desc1", "desc2"))
+    expect_equal(gs_descs(obj), c("desc1", "desc2"))
 })
 
 test_that("names<-.enricher_genesets rejects NULL in names", {
@@ -84,13 +84,13 @@ test_that("names<-.enricher_genesets rejects NULL in names", {
 
 test_that("names<-.enricher_genesets rejects NA in names", {
     x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
-    expect_error(names(x) <- c("Valid", NA), "Names cannot be missing or empty")
+    expect_error(names(x) <- c("Valid", NA), "names cannot be missing or empty")
 })
 
 test_that("names<-.enricher_genesets rejects empty string in names", {
     x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
     new_names <- c("", "Valid")
-    expect_error(names(x) <- new_names, "Names cannot be missing or empty")
+    expect_error(names(x) <- new_names, "names cannot be missing or empty")
 })
 
 # Subsetting and indexing
@@ -103,7 +103,7 @@ test_that("`[` subset returns enriched object", {
     expect_s3_class(sub, "enricher_genesets")
     expect_equal(length(sub), 1)
     expect_equal(names(sub), "a")
-    expect_equal(attr(sub, "descriptions"), "Pathway A")
+    expect_equal(gs_descs(sub), "Pathway A")
 })
 
 test_that("`[[` and `$` retain description", {
@@ -121,8 +121,8 @@ test_that("conversion to data.frame works", {
 
     df <- as.data.frame(obj)
     expect_s3_class(df, "data.frame")
-    expect_equal(ncol(df), 3)
-    expect_named(df, c("terms", "descriptions", "genesets"))
+    expect_equal(ncol(df), 4L)
+    expect_named(df, c("ids", "terms", "descriptions", "genesets"))
 })
 
 test_that("conversion to list preserves names", {
@@ -149,7 +149,7 @@ test_that("length<- truncates the object", {
     obj <- new_genesets(gs, descriptions = c("d1", "d2", "d3"))
     length(obj) <- 2
     expect_equal(names(obj), c("a", "b"))
-    expect_equal(attr(obj, "descriptions"), c("d1", "d2"))
+    expect_equal(gs_descs(obj), c("d1", "d2"))
 })
 
 test_that("length<- errors if increasing length", {

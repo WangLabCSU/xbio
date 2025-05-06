@@ -45,3 +45,5 @@ godb_download <- function(database, organism) {
         structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
     }
 }
+
+GO_ONTOLOGY <- c("BP", "CC", "MF")

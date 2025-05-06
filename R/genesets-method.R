@@ -1,4 +1,26 @@
-gs_map <- function(gs, annodb, key_source, key_target) {
+gs_terms <- function(gs) {
+    assert_s3_class(gs, "enricher_genesets")
+    vapply(
+        gs, function(geneset) {
+            attr(geneset, "term") %||% NA_character_
+        },
+        character(1L),
+        USE.NAMES = FALSE
+    )
+}
+
+gs_descs <- function(gs) {
+    assert_s3_class(gs, "enricher_genesets")
+    vapply(
+        gs, function(geneset) {
+            attr(geneset, "description") %||% NA_character_
+        },
+        character(1L),
+        USE.NAMES = FALSE
+    )
+}
+
+gs_map <- function(gs, annodb, key_source, key_target, ...) {
     assert_s3_class(gs, "enricher_genesets")
     assert_string(key_source, allow_empty = FALSE)
     assert_string(key_target, allow_empty = FALSE)
@@ -14,11 +36,13 @@ gs_map <- function(gs, annodb, key_source, key_target) {
     gs_lapply(gs, function(geneset) {
         if (length(geneset) == 0L) return(geneset) # styler: off
         out <- AnnotationDbi::mapIds(
-            annodb,
+            x = annodb,
             keys = geneset,
             column = key_target,
-            keytype = key_source
+            keytype = key_source,
+            ...
         )
+        out <- as.character(out) # out can be a list
         out[is.na(out) | out == ""] <- NA_character_
         out
     })
@@ -27,6 +51,7 @@ gs_map <- function(gs, annodb, key_source, key_target) {
 #' @keywords internal
 #' @noRd
 gs_trim <- function(gs) {
+    assert_s3_class(gs, "enricher_genesets")
     gs <- gs_lapply(gs, function(geneset) {
         geneset[!is.na(geneset) & geneset != ""]
     })
@@ -68,8 +93,4 @@ gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
     gs
 }
 
-gs_lapply <- function(gs, ...) {
-    data <- vec_proxy(gs)
-    data$genesets <- lapply(data$genesets, ...)
-    vec_restore(data, gs)
-}
+gs_lapply <- function(gs, ...) vec_restore(lapply(gs, ...), gs)
