@@ -54,11 +54,11 @@ annohub <- function(..., version = NULL, hub = NULL, cache = NULL,
                     db_date <- as.character(max(dates))
                 }
             },
-            error = function(err) {
-                stop(
-                    "failed to connect", "\n  reason: ", conditionMessage(err),
-                    "\n  Consider rerunning with 'localHub=TRUE'"
-                )
+            error = function(cnd) {
+                cli::cli_abort(c(
+                    "failed to connect",
+                    i = "Consider re-running with 'localHub=TRUE'"
+                ), parent = cnd)
             }
         )
     } else {
