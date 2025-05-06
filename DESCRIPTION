@@ -40,7 +40,7 @@ Collate:
     'extendr-wrappers.R'
     'geneset-class.R'
     'genesets-class.R'
-    'genesets-generic.R'
+    'genesets-gs.R'
     'genesets-io.R'
     'genesets-method.R'
     'import-standalone-assert.R'
