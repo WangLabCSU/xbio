@@ -57,6 +57,10 @@ new_genesets <- function(genesets = list(), ...,
     new_vctr(genesets, ..., class = "enricher_genesets")
 }
 
+methods::setOldClass("enricher_genesets")
+
+S3_genesets <- new_S3_class("enricher_genesets")
+
 #' @export
 `names<-.enricher_genesets` <- function(x, value) {
     if (is.null(value)) {

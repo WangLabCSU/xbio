@@ -87,6 +87,10 @@ keggdb_download <- function(database, organism) {
     }
 }
 
+methods::setOldClass("enricher_kegg_genesets")
+
+S3_kegg_genesets <- new_S3_class("enricher_kegg_genesets")
+
 #' Finds entries in a given database
 #'
 #' @param ... One or more keywords, or a range of integers representing

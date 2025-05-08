@@ -157,15 +157,63 @@ write_lines <- function(text, path, eol = if (.Platform$OS.type == "windows") {
     invisible(text)
 }
 
-write_table <- function(data, path, sep = "\t") {
+write_table <- function(data, path, sep = "\t", col.names = TRUE, ...) {
     if (is_installed("data.table")) {
-        getExportedValue("data.table", "fwrite")(data, file = path, sep = sep)
+        getExportedValue("data.table", "fwrite")(
+            data, file = path, sep = sep, col.names = col.names, ...
+        )
     } else if (is_installed("vroom")) {
-        getExportedValue("vroom", "vroom_write")(data, file = path, delim = sep)
+        getExportedValue("vroom", "vroom_write")(
+            data, file = path, delim = sep, col_names = col.names, ...
+        )
     } else if (is_installed("readr")) {
-        getExportedValue("readr", "write_delim")(data, file = path, delim = sep)
+        getExportedValue("readr", "write_delim")(
+            data, file = path, delim = sep, col_names = col.names, ...
+        )
     } else {
-        utils::write.table(data, file = path, sep = sep, row.names = FALSE)
+        utils::write.table(
+            data,
+            file = path, sep = sep, row.names = FALSE,
+            col.names = col.names, ...
+        )
+    }
+}
+
+read_table <- function(path, sep = "\t", header = TRUE, ...,
+                       skip = 0L, comment = "#") {
+    if (is_installed("data.table") && !(skip > 0L && nzchar(comment))) {
+        if (nzchar(comment)) skip <- comment
+        out <- getExportedValue("data.table", "fread")(
+            file = path, sep = sep,
+            header = header, ...,
+            fill = TRUE, skip = skip
+        )
+        getExportedValue("data.table", "setDF")(out)
+    } else if (is_installed("vroom")) {
+        out <- getExportedValue("vroom", "vroom")(
+            file = path, delim = sep,
+            col_names = header, ...,
+            skip = skip, comment = comment,
+            .name_repair = "minimal"
+        )
+        as.data.frame(out)
+    } else if (is_installed("readr")) {
+        out <- getExportedValue("readr", "read_delim")(
+            file = path, delim = sep,
+            col_names = header, ...,
+            skip = skip, comment = comment,
+            name_repair = "minimal"
+        )
+        as.data.frame(out)
+    } else {
+        utils::read.table(
+            file = path, sep = sep,
+            header = header, row.names = NULL,
+            check.names = FALSE,
+            stringsAsFactors = FALSE,
+            ...,
+            skip = skip, comment.char = comment
+        )
     }
 }
 

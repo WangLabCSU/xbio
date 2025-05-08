@@ -64,6 +64,40 @@ check_bioc_installed <- function(pkg, reason = NULL, ...) {
     )
 }
 
+check_remote_installed <- function(pkg, remote, reason = NULL, ...) {
+    rlang::check_installed(
+        pkg,
+        reason = reason,
+        ...,
+        action = function(pkgs, ...) {
+            if (is_installed("pak")) {
+                getExportedValue("pak", "pkg_install")(remote, ask = FALSE, ...)
+            } else if (is_installed("remotes")) {
+                getExportedValue("remotes", "install_github")(remote, ...)
+            } else {
+                choosed <- utils::menu(
+                    c("pak", "remotes"),
+                    title = paste(
+                        "Would you like to install `pak`/`remotes`",
+                        "in order to install", oxford_and(remote)
+                    )
+                )
+                if (choosed == 1L) {
+                    utils::install.packages("pak")
+                    getExportedValue("pak", "pkg_install")(
+                        remote, ask = FALSE, ...
+                    )
+                } else if (choosed == 2L) {
+                    utils::install.packages("remotes")
+                    getExportedValue("remotes", "install_github")(remote, ...)
+                } else {
+                    invokeRestart("abort")
+                }
+            }
+        }
+    )
+}
+
 RUST_CALL <- .Call
 
 #' @keywords internal
