@@ -75,7 +75,8 @@ methods::setMethod(
     }
 )
 
-#' @param ids A character vector of gene set IDs for list input.
+#' @param ids A character vector of gene set IDs for list input. If `NULL`, the
+#' names of the input list will be used.
 #' @param terms A character vector of gene set terms for list input.
 #' @param descriptions A character vector of gene set descriptions for a list
 #' input.

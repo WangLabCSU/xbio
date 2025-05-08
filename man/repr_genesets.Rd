@@ -58,7 +58,8 @@ internal to provide better message.}
 \item{select}{A character or integer vector select the columns to be used for
 a data.frame input.}
 
-\item{ids}{A character vector of gene set IDs for list input.}
+\item{ids}{A character vector of gene set IDs for list input. If \code{NULL}, the
+names of the input list will be used.}
 
 \item{terms}{A character vector of gene set terms for list input.}
 
