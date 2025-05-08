@@ -4,10 +4,10 @@
 
 #
 # This file was created with the following call:
-#   .Call("wrap__make_enricher_wrappers", use_symbols = TRUE, package_name = "enricher")
+#   .Call("wrap__make_xbio_wrappers", use_symbols = TRUE, package_name = "xbio")
 
 #' @usage NULL
-#' @useDynLib enricher, .registration = TRUE
+#' @useDynLib xbio, .registration = TRUE
 NULL
 
 gsea_gene_permutate <- function(identifiers, metrics, genesets, exponent, nperm, threads, seed) .Call(wrap__gsea_gene_permutate, identifiers, metrics, genesets, exponent, nperm, threads, seed)

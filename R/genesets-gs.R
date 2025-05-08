@@ -1,5 +1,5 @@
 gs_terms <- function(gs) {
-    assert_s3_class(gs, "enricher_genesets")
+    assert_s3_class(gs, "xbio_genesets")
     vapply(
         gs, function(geneset) {
             attr(geneset, "term") %||% NA_character_
@@ -10,7 +10,7 @@ gs_terms <- function(gs) {
 }
 
 gs_descs <- function(gs) {
-    assert_s3_class(gs, "enricher_genesets")
+    assert_s3_class(gs, "xbio_genesets")
     vapply(
         gs, function(geneset) {
             attr(geneset, "description") %||% NA_character_
@@ -21,7 +21,7 @@ gs_descs <- function(gs) {
 }
 
 gs_map <- function(gs, annodb, key_source, key_target, ...) {
-    assert_s3_class(gs, "enricher_genesets")
+    assert_s3_class(gs, "xbio_genesets")
     assert_string(key_source, allow_empty = FALSE)
     assert_string(key_target, allow_empty = FALSE)
     if (vec_size(gs) == 0L) return(gs) # styler: off
@@ -51,7 +51,7 @@ gs_map <- function(gs, annodb, key_source, key_target, ...) {
 #' @keywords internal
 #' @noRd
 gs_trim <- function(gs) {
-    assert_s3_class(gs, "enricher_genesets")
+    assert_s3_class(gs, "xbio_genesets")
     gs <- gs_lapply(gs, function(geneset) {
         geneset[!is.na(geneset) & geneset != ""]
     })
@@ -66,7 +66,7 @@ gs_trim <- function(gs) {
 }
 
 gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
-    assert_s3_class(gs, "enricher_genesets")
+    assert_s3_class(gs, "xbio_genesets")
     assert_number_whole(min_size, min = 1, allow_null = TRUE)
     assert_number_whole(max_size, min = 1, allow_null = TRUE)
     if (is.null(min_size) && is.null(max_size)) {

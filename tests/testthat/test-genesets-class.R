@@ -1,7 +1,7 @@
 test_that("creates new_genesets with named gene sets", {
     gs <- list(a = c("X", "Y"), b = c("Y", "Z"))
     obj <- new_genesets(gs)
-    expect_s3_class(obj, "enricher_genesets")
+    expect_s3_class(obj, "xbio_genesets")
     expect_named(obj, c("a", "b"))
 })
 
@@ -34,7 +34,7 @@ test_that("assigns descriptions when provided", {
     ids <- c("Set1", "Set2")
     desc <- c("desc1", "desc2")
     obj <- new_genesets(gs, ids = ids, descriptions = desc)
-    expect_s3_class(obj, "enricher_genesets")
+    expect_s3_class(obj, "xbio_genesets")
     expect_named(obj, ids)
     expect_identical(gs_descs(obj), desc)
 })
@@ -50,7 +50,7 @@ test_that("errors when descriptions and genesets have mismatched lengths", {
 })
 
 # Name Handling
-test_that("names<-.enricher_genesets cworks for valid input", {
+test_that("names<-.xbio_genesets cworks for valid input", {
     gs <- list(c("A", "B"), c("C"))
     obj <- new_genesets(gs,
         ids = c("old1", "old2"),
@@ -61,7 +61,7 @@ test_that("names<-.enricher_genesets cworks for valid input", {
     expect_named(obj, c("new1", "new2"))
 })
 
-test_that("names<-.enricher_genesets preserves descriptions when renaming", {
+test_that("names<-.xbio_genesets preserves descriptions when renaming", {
     gs <- list(c("A", "B"), c("C"))
     obj <- new_genesets(gs,
         ids = c("a", "b"),
@@ -73,7 +73,7 @@ test_that("names<-.enricher_genesets preserves descriptions when renaming", {
     expect_equal(gs_descs(obj), c("desc1", "desc2"))
 })
 
-test_that("names<-.enricher_genesets rejects NULL in names", {
+test_that("names<-.xbio_genesets rejects NULL in names", {
     gs <- list(a = c("A", "B"))
     obj <- new_genesets(gs)
     expect_error(
@@ -82,12 +82,12 @@ test_that("names<-.enricher_genesets rejects NULL in names", {
     )
 })
 
-test_that("names<-.enricher_genesets rejects NA in names", {
+test_that("names<-.xbio_genesets rejects NA in names", {
     x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
     expect_error(names(x) <- c("Valid", NA), "names cannot be missing or empty")
 })
 
-test_that("names<-.enricher_genesets rejects empty string in names", {
+test_that("names<-.xbio_genesets rejects empty string in names", {
     x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
     new_names <- c("", "Valid")
     expect_error(names(x) <- new_names, "names cannot be missing or empty")
@@ -100,7 +100,7 @@ test_that("`[` subset returns enriched object", {
     obj <- new_genesets(gs, descriptions = desc)
     sub <- obj[1]
 
-    expect_s3_class(sub, "enricher_genesets")
+    expect_s3_class(sub, "xbio_genesets")
     expect_equal(length(sub), 1)
     expect_equal(names(sub), "a")
     expect_equal(gs_descs(sub), "Pathway A")
@@ -141,7 +141,7 @@ test_that("rep replicates gene sets correctly", {
 
     r <- rep(obj, 2)
     expect_equal(length(r), 4L)
-    expect_s3_class(r, "enricher_genesets")
+    expect_s3_class(r, "xbio_genesets")
 })
 
 test_that("length<- truncates the object", {

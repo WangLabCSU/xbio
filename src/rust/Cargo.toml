@@ -1,12 +1,12 @@
 [package]
-name = 'enricher'
+name = 'xbio'
 publish = false
 version = '0.1.0'
 edition = '2021'
 rust-version = '1.65'
 
 [lib]
-name = 'enricher'
+name = 'xbio'
 crate-type = [ 'staticlib' ]
 
 [dependencies]

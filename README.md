@@ -1,12 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# enricher
+# xbio
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The enricher package provides a lightweight and extensible interface for
+The xbio package provides a lightweight and extensible interface for
 performing functional enrichment analysis of gene sets, supporting the
 biological interpretation of omics data. It integrates multiple
 annotation resources, including KEGG and other widely used biological

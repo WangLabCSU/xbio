@@ -1,6 +1,6 @@
 #' Create ranking metrics representation
 #'
-#' @return A `enricher_metrics` object.
+#' @return A `xbio_metrics` object.
 methods::setGeneric("repr_metrics", function(metrics, ..., `_arg` = NULL) {
     # `_arg` is not used by user, but used by the internal to provide better
     # message
@@ -8,9 +8,9 @@ methods::setGeneric("repr_metrics", function(metrics, ..., `_arg` = NULL) {
     standardGeneric("repr_metrics")
 })
 
-new_metrics <- function(x) structure(x, class = "enricher_metrics")
+new_metrics <- function(x) structure(x, class = "xbio_metrics")
 
-methods::setOldClass("enricher_metrics")
+methods::setOldClass("xbio_metrics")
 
 is_valid_metrics <- function(metrics, names) {
     valid <- !vec_detect_missing(names) & names != ""
@@ -42,7 +42,7 @@ methods::setMethod(
 
 #' @export
 methods::setMethod(
-    "repr_metrics", "enricher_metrics",
+    "repr_metrics", "xbio_metrics",
     function(metrics, ..., `_arg` = NULL) metrics
 )
 

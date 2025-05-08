@@ -26,7 +26,7 @@
 #' @param _arg A single string of the argument name for `gs`, used by the
 #' internal to provide better message.
 #' @inheritParams keggdb
-#' @return A `enricher_genesets` object.
+#' @return A `xbio_genesets` object.
 #' @export
 repr_genesets <- function(gs, ..., min_size = 5, max_size = 500) {
     out <- genesets(gs, ...)
@@ -44,7 +44,7 @@ methods::setGeneric("genesets", function(gs, ..., `_arg` = NULL) {
 
 #' @export
 methods::setMethod(
-    "genesets", "enricher_genesets",
+    "genesets", "xbio_genesets",
     function(gs, ..., `_arg` = NULL) gs
 )
 
@@ -211,7 +211,7 @@ methods::setMethod(
 
 #' @export
 methods::setMethod(
-    "genesets", "enricher_kegg_genesets",
+    "genesets", "xbio_kegg_genesets",
     function(gs, ..., `_arg` = NULL) {
         vec_cast(gs, new_genesets(), x_arg = `_arg`)
     }

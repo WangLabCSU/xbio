@@ -7,30 +7,30 @@ new_geneset <- function(geneset = character(),
         term = term,
         description = description,
         ...,
-        class = c(class, "enricher_geneset")
+        class = c(class, "xbio_geneset")
     )
 }
 
 #' @export
-obj_print_header.enricher_geneset <- function(x, ...) {
+obj_print_header.xbio_geneset <- function(x, ...) {
     cli::cat_line("<", "geneset", "[", vec_size(x), "]>")
     invisible(x)
 }
 
 ##################################################
 #' @export
-vec_ptype2.enricher_geneset.NULL <- function(x, y, ...) {
+vec_ptype2.xbio_geneset.NULL <- function(x, y, ...) {
     x
 }
 
 #' @export
-vec_ptype2.NULL.enricher_geneset <- function(x, y, ...) {
+vec_ptype2.NULL.xbio_geneset <- function(x, y, ...) {
     y
 }
 
 #############################################################
 #' @export
-vec_cast.character.enricher_geneset <- function(x, to, ...,
+vec_cast.character.xbio_geneset <- function(x, to, ...,
                                                 x_arg = caller_arg(x),
                                                 to_arg = "",
                                                 call = caller_env()) {

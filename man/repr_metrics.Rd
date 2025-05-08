@@ -16,7 +16,7 @@ repr_metrics(metrics, ..., `_arg` = NULL)
 \S4method{repr_metrics}{character}(metrics, ..., `_arg` = NULL)
 }
 \value{
-A \code{enricher_metrics} object.
+A \code{xbio_metrics} object.
 }
 \description{
 Create ranking metrics representation

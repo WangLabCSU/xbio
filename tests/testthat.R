@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(enricher)
+library(xbio)
 
-test_check("enricher")
+test_check("xbio")

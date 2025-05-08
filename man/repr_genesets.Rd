@@ -76,7 +76,7 @@ use.}
 one or more of \code{"BP"}, \code{"CC"}, and \code{"MF"}.}
 }
 \value{
-A \code{enricher_genesets} object.
+A \code{xbio_genesets} object.
 }
 \description{
 Create Gene Sets representation

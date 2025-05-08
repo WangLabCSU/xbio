@@ -54,15 +54,15 @@ new_genesets <- function(genesets = list(), ...,
         new_geneset(geneset, term = term, description = description)
     }, list(geneset = genesets, term = terms, description = descriptions), NULL)
     names(genesets) <- ids
-    new_vctr(genesets, ..., class = "enricher_genesets")
+    new_vctr(genesets, ..., class = "xbio_genesets")
 }
 
-methods::setOldClass("enricher_genesets")
+methods::setOldClass("xbio_genesets")
 
-S3_genesets <- new_S3_class("enricher_genesets")
+S3_genesets <- new_S3_class("xbio_genesets")
 
 #' @export
-`names<-.enricher_genesets` <- function(x, value) {
+`names<-.xbio_genesets` <- function(x, value) {
     if (is.null(value)) {
         cli::cli_abort("Cannot remove the names of genesets")
     }
@@ -74,13 +74,13 @@ S3_genesets <- new_S3_class("enricher_genesets")
 }
 
 #' @export
-obj_print_header.enricher_genesets <- function(x, ...) {
+obj_print_header.xbio_genesets <- function(x, ...) {
     cli::cat_line("<", "genesets", "[", vec_size(x), "]>")
     invisible(x)
 }
 
 #' @export
-obj_print_data.enricher_genesets <- function(x, geneset_trunc = 6L,
+obj_print_data.xbio_genesets <- function(x, geneset_trunc = 6L,
                                              trunc = 6L, ...) {
     size <- vec_size(x)
     if (size == 0L) return(invisible(x)) # styler: off
@@ -116,48 +116,48 @@ obj_print_data.enricher_genesets <- function(x, geneset_trunc = 6L,
 
 ##################################################
 #' @export
-vec_ptype2.enricher_genesets.enricher_genesets <- function(x, y, ...) {
+vec_ptype2.xbio_genesets.xbio_genesets <- function(x, y, ...) {
     x
 }
 
 #' @export
-vec_ptype2.enricher_genesets.NULL <- function(x, y, ...) {
+vec_ptype2.xbio_genesets.NULL <- function(x, y, ...) {
     x
 }
 
 #' @export
-vec_ptype2.NULL.enricher_genesets <- function(x, y, ...) {
+vec_ptype2.NULL.xbio_genesets <- function(x, y, ...) {
     y
 }
 
 #' @export
-vec_ptype2.enricher_genesets.data.frame <- function(x, y, ...) {
+vec_ptype2.xbio_genesets.data.frame <- function(x, y, ...) {
     x
 }
 
 #' @export
-vec_ptype2.data.frame.enricher_genesets <- function(x, y, ...) {
+vec_ptype2.data.frame.xbio_genesets <- function(x, y, ...) {
     y
 }
 
 #' @export
-vec_ptype2.enricher_genesets.list <- function(x, y, ...) {
+vec_ptype2.xbio_genesets.list <- function(x, y, ...) {
     x
 }
 
 #' @export
-vec_ptype2.list.enricher_genesets <- function(x, y, ...) {
+vec_ptype2.list.xbio_genesets <- function(x, y, ...) {
     y
 }
 
 ##################################################
 #' @export
-vec_cast.enricher_genesets.enricher_genesets <- function(x, to, ...) {
+vec_cast.xbio_genesets.xbio_genesets <- function(x, to, ...) {
     x
 }
 
 #' @export
-vec_cast.data.frame.enricher_genesets <- function(x, to, ...) {
+vec_cast.data.frame.xbio_genesets <- function(x, to, ...) {
     ids <- names(x)
     terms <- gs_terms(x)
     descriptions <- gs_descs(x)
@@ -171,7 +171,7 @@ vec_cast.data.frame.enricher_genesets <- function(x, to, ...) {
 }
 
 #' @export
-vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
+vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
     # Nest the term and descriptions columns
     if (ncol(x) == 2L) {
         ids <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
@@ -226,8 +226,8 @@ vec_cast.enricher_genesets.data.frame <- function(x, to, ...) {
 }
 
 #' @export
-vec_cast.enricher_genesets.enricher_kegg_genesets <- function(x, to, ...) {
-    vec_cast.enricher_genesets.data.frame(new_data_frame(list(
+vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
+    vec_cast.xbio_genesets.data.frame(new_data_frame(list(
         ids = .subset2(x, "ids"),
         terms = .subset2(x, "terms"),
         descriptions = rep_len(NA_character_, vec_size(x)),
@@ -237,15 +237,15 @@ vec_cast.enricher_genesets.enricher_kegg_genesets <- function(x, to, ...) {
 
 
 #' @export
-as.data.frame.enricher_genesets <- function(x, ...) {
+as.data.frame.xbio_genesets <- function(x, ...) {
     vec_cast(x, new_data_frame())
 }
 
 #' @export
-vec_cast.list.enricher_genesets <- function(x, to, ...) vec_proxy(x)
+vec_cast.list.xbio_genesets <- function(x, to, ...) vec_proxy(x)
 
 #' @export
-vec_cast.enricher_genesets.list <- function(x, to, ...) {
+vec_cast.xbio_genesets.list <- function(x, to, ...) {
     if (!rlang::is_named2(x)) {
         cli::cli_abort("Conversion to {.cls genesets} requires a named list.")
     }
@@ -289,15 +289,15 @@ vec_cast.enricher_genesets.list <- function(x, to, ...) {
 }
 
 #' @export
-as.list.enricher_genesets <- function(x, ...) vec_cast(x, list())
+as.list.xbio_genesets <- function(x, ...) vec_cast(x, list())
 
 #' @export
-vec_math.enricher_genesets <- function(.fn, .x, ...) {
+vec_math.xbio_genesets <- function(.fn, .x, ...) {
     stop_incompatible_op("vec_math", x = .x)
 }
 
 #' @export
-`length<-.enricher_genesets` <- function(x, value) {
+`length<-.xbio_genesets` <- function(x, value) {
     size <- vec_size(x)
     if (value > size) {
         cli::cli_abort(
@@ -308,7 +308,7 @@ vec_math.enricher_genesets <- function(.fn, .x, ...) {
 }
 
 #' @export
-rep.enricher_genesets <- function(x, ...) {
+rep.xbio_genesets <- function(x, ...) {
     out <- NextMethod()
     vec_restore(out, x)
 }
