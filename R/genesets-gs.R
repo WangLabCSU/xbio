@@ -85,7 +85,7 @@ gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
     }
     if (!all(keep)) {
         cli::cli_warn(sprintf(
-            "Removing {sum(!keep)} gene set{?s} out of %s",
+            "Removing {sum(!keep)} gene set{?s} with size out of %s",
             out_pattern
         ))
         gs <- gs[keep]

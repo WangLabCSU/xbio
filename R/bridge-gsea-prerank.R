@@ -121,8 +121,7 @@ method(bridge, GSEAGene) <- function(source, target, method) {
             terms = gs_terms(target),
             descriptions = gs_descs(target)
         ),
-        out,
-        list(indices = indices)
+        out
     ))
 }
 
