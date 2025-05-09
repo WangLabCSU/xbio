@@ -29,9 +29,10 @@ GSEAPrerank <- new_class("GSEAPrerank",
 
 S4_register(GSEAPrerank)
 
-method(repr_source, GSEAPrerank) <- function(method, source) {
-    repr_metrics(source, `_arg` = "source")
-}
+methods::setMethod(
+    "repr_source", c("xbio::GSEAPrerank", "ANY"),
+    function(method, source) repr_metrics(source, `_arg` = "source")
+)
 
 method(repr_target, GSEAPrerank) <- function(method, target) {
     repr_genesets(target, `_arg` = "target")

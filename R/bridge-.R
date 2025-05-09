@@ -16,31 +16,32 @@
 #'
 #' @param source The input source to be scored, depending on the selected
 #' `method`.
-#'  - Over-Representation Analysis: [`repr_threshold()`].
-#'  - GSEA gene-permutation algorithm: [`repr_metrics()`].
-#'  - GSEA sample-permutation algorithm: A matrix-like object. Although this
-#'    method also utilizes [`repr_metrics()`], it internally computes ranking
-#'    metrics and performs permutations based on sample labels. Metric-related
-#'    arguments should be specified within the `method` argument. 
-#' 
+#'  - **Over-Representation Analysis**: [`repr_threshold()`].
+#'  - **GSEA gene-permutation algorithm**: [`repr_metrics()`].
+#'  - **GSEA sample-permutation algorithm**: Accepts a matrix-like object.
+#'    Although this method inherently relies on a ranked metric, it internally
+#'    computes the ranking metric and performs permutations based on sample
+#'    labels. Metric-related parameters should be specified within the `method`
+#'    argument.
+#'
 #'    `Note`: While matrices are not conceptually equivalent to biological
 #'    process representations, we provide [`repr_matrix()`] for stylistic
 #'    consistency and user convenience.
-#'  - Rank-Rank Hypergeometric Overlap test: [`repr_metrics()`].
+#'  - **Rank-Rank Hypergeometric Overlap test**: [`repr_metrics()`].
 #'
 #' @param target The input target used for associating, depending on the
 #' selected `method`.
-#'  - Over-Representation Analysis: [`repr_genesets()`].
-#'  - GSEA gene-permutation algorithm: [`repr_genesets()`].
-#'  - GSEA sample-permutation algorithm: [`repr_genesets()`].
-#'  - Rank-Rank Hypergeometric Overlap test: [`repr_metrics()`].
+#'  - **Over-Representation Analysis**: [`repr_genesets()`].
+#'  - **GSEA gene-permutation algorithm**: [`repr_genesets()`].
+#'  - **GSEA sample-permutation algorithm**: [`repr_genesets()`].
+#'  - **Rank-Rank Hypergeometric Overlap test**: [`repr_metrics()`].
 #'
 #' @param method The scoring method to use:
-#'  - Over-Representation Analysis: [ORA()]
-#'  - GSEA gene-permutation algorithm: [`GSEAGene()`], [`GSEASimple()`],
+#'  - **Over-Representation Analysis**: [ORA()]
+#'  - **GSEA gene-permutation algorithm**: [`GSEAGene()`], [`GSEASimple()`],
 #'    [`GSEAMultilevel()`], and [`GSEABroadGene()`].
-#'  - GSEA sample-permutation algorithm: [`GSEABroad()`] and [GSEASample()].
-#'  - Rank-Rank Hypergeometric Overlap test: [`RRHO()`].
+#'  - **GSEA sample-permutation algorithm**: [`GSEABroad()`] and [GSEASample()].
+#'  - **Rank-Rank Hypergeometric Overlap test**: [`RRHO()`].
 #' @export
 methods::setGeneric(
     "bridge",
@@ -58,20 +59,27 @@ methods::setMethod("bridge", "ANY", function(source, target, method) {
     )
 })
 
-repr_source <- new_generic(
-    "repr_source", "method",
-    function(method, source) S7_dispatch()
+# repr_source
+methods::setGeneric("repr_source",
+    signature = c("method", "source"),
+    function(method, source) standardGeneric("repr_source")
 )
 
-method(repr_source, class_missing) <- function(method, source) {
-    cli::cli_abort("{.arg method} must be provided")
-}
+methods::setMethod(
+    "repr_source", c("missing", "ANY"),
+    function(method, source) {
+        cli::cli_abort("{.arg method} must be provided")
+    }
+)
 
+methods::setMethod(
+    "repr_source", c("ANY", "ANY"),
+    function(method, source) {
+        cli::cli_abort("Invalid {.arg method} provided")
+    }
+)
 
-method(repr_source, class_any) <- function(method, source) {
-    cli::cli_abort("Invalid {.arg method} provided")
-}
-
+# repr_target
 repr_target <- new_generic(
     "repr_target", "method",
     function(method, target) S7_dispatch()

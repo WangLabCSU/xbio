@@ -112,6 +112,6 @@ rust_call <- function(.NAME, ...) {
 
     # propagate error from rust --------------------
     if (!inherits(out, "extendr_result")) return(out) # styler: off
-    if (is.null(.subset2(out, "ok"))) stop(.subset2(out, "err"), call. = FALSE)
+    if (is.null(.subset2(out, "ok"))) cli::cli_abort(.subset2(out, "err"))
     .subset2(out, "ok")
 }
