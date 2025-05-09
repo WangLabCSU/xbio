@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::env;
 
 use extendr_api::prelude::*;
 
@@ -29,7 +28,7 @@ fn gsea_gene_permutate(
     nperm: usize,
     threads: usize,
     seed: usize,
-) -> Result<algorithm::GSEAOutput> {
+) -> std::result::Result<algorithm::GSEAOutput, String> {
     //  Check and parse `identifiers`
     let identifiers: Vec<&str> = identifiers
         .as_str_vector()
@@ -53,16 +52,24 @@ fn gsea_gene_permutate(
         input_gs.push(gs);
     }
 
-    // Run permutation and return result
-    env::set_var("RAYON_NUM_THREADS", threads.to_string());
-    let out = permutate_gene::gsea_gene(
-        &identifiers,
-        metrics,
-        &input_gs,
-        exponent,
-        nperm,
-        seed,
-    );
+    // Set rayon threads
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    // Run GSEA and Permutation
+    let out = pool.install(|| {
+        permutate_gene::gsea_gene(
+            &identifiers,
+            metrics,
+            &input_gs,
+            exponent,
+            nperm,
+            seed,
+        )
+    });
+
     Ok(out)
 }
 
