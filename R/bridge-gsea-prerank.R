@@ -108,7 +108,16 @@ S4_register(GSEASimple)
 
 method(bridge, GSEASimple) <- function(source, target, method) {
     check_bioc_installed("fgsea", "to use {.field GSEASimple} method")
-    fgsea::fgseaSimple(
+    # Save the genesets information, will be restored in the result
+    gs_data <- new_data_frame(list(
+        ids = names(target),
+        terms = gs_terms(target),
+        descriptions = gs_descs(target)
+    ))
+    names(target) <- as.character(seq_len(vec_size(target)))
+
+    # Run GSEA
+    out <- fgsea::fgseaSimple(
         target,
         source,
         minSize = 0,
@@ -118,6 +127,13 @@ method(bridge, GSEASimple) <- function(source, target, method) {
         nproc = method@threads,
         gseaParam = method@exponent
     )
+
+    # restore the original ordering
+    index <- as.integer(out$pathway)
+    out <- out[c("ES", "NES", "pval", "padj", "leadingEdge")]
+    names(out) <- c("es", "nes", "pvalue", "fdr", "leading_edge")
+    out <- vec_cbind(vec_slice(gs_data, index), out)
+    vec_slice(out, order(index))
 }
 
 #' @describeIn GSEAPrerank `fgsea` algorithm. See
@@ -164,7 +180,16 @@ S4_register(GSEAMultilevel)
 
 method(bridge, GSEAMultilevel) <- function(source, target, method) {
     check_bioc_installed("fgsea", "to use {.field GSEAMultilevel} method")
-    fgsea::fgseaMultilevel(
+    # Save the genesets information, will be restored in the result
+    gs_data <- new_data_frame(list(
+        ids = names(target),
+        terms = gs_terms(target),
+        descriptions = gs_descs(target)
+    ))
+    names(target) <- as.character(seq_len(vec_size(target)))
+
+    # Run GSEA
+    out <- fgsea::fgseaMultilevel(
         target,
         source,
         minSize = 0,
@@ -176,6 +201,13 @@ method(bridge, GSEAMultilevel) <- function(source, target, method) {
         nproc = method@threads,
         gseaParam = method@exponent
     )
+
+    # restore the original ordering
+    index <- as.integer(out$pathway)
+    out <- out[c("ES", "NES", "pval", "padj", "leadingEdge")]
+    names(out) <- c("es", "nes", "pvalue", "fdr", "leading_edge")
+    out <- vec_cbind(vec_slice(gs_data, index), out)
+    vec_slice(out, order(index))
 }
 
 # GSEA method (official) -------------------------------

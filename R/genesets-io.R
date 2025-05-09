@@ -1,10 +1,3 @@
-write_rnk <- function(prerank, path) {
-    write_table(
-        data.frame(names = names(prerank), value = prerank),
-        path = path, col.names = FALSE, quote = FALSE
-    )
-}
-
 # https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29
 write_gmt <- function(gs, path) {
     data <- as.data.frame(gs)[c("ids", "descriptions", "genesets")]
