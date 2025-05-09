@@ -163,7 +163,7 @@ methods::setMethod(
                     "{.arg {`_arg`}} is not a valid {.cls OrgDb} package"
                 )
             }
-            return(repr_genesets(gs = orgdb, ...))
+            return(genesets(gs = orgdb, ...))
         }
 
         # Network based method
@@ -175,7 +175,7 @@ methods::setMethod(
             # msigdbr = genesets_msigdbr(..., verbose = verbose),
             cli::cli_abort("No genesets for {gs}")
         )
-        repr_genesets(out)
+        genesets(out)
     }
 )
 
@@ -205,7 +205,7 @@ methods::setMethod(
         if (!is.null(ontology)) {
             out <- vec_slice(out, out$ONTOLOGYALL %in% ontology)
         }
-        repr_genesets(out, select = c("GOALL", "ONTOLOGYALL", keytype))
+        genesets(out, select = c("GOALL", "ONTOLOGYALL", keytype))
     }
 )
 
