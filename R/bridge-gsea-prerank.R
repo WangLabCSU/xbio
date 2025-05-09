@@ -211,15 +211,17 @@ method(bridge, GSEABroadGene) <- function(source, target, method) {
         dir_create(odir)
     }
 
-    # Prepare the input file
-    rnk <- tempfile("rnk", fileext = ".rnk")
-    write_rnk(source, rnk)
-    on.exit(file.remove(rnk), add = TRUE)
+    # Save the genesets information, will be restored in the result
     gs_data <- new_data_frame(list(
         ids = names(target),
         terms = gs_terms(target),
         descriptions = gs_descs(target)
     ))
+
+    # Prepare the input file
+    rnk <- tempfile("rnk", fileext = ".rnk")
+    write_rnk(source, rnk)
+    on.exit(file.remove(rnk), add = TRUE)
     names(target) <- as.character(seq_len(vec_size(target)))
     gmt <- tempfile("gmt", fileext = ".gmt")
     write_gmt(target, gmt)
@@ -228,7 +230,7 @@ method(bridge, GSEABroadGene) <- function(source, target, method) {
     # run GSEA
     out <- getExportedValue("GSEA", "GSEA")(
         input.ds = rnk,
-        # input.cls = list(),
+        input.cls = list(),
         gs.db = gmt,
         output.directory = odir,
         gsea.type = "preranked",
@@ -247,15 +249,12 @@ method(bridge, GSEABroadGene) <- function(source, target, method) {
     # result <- list.files(odir, pattern = "NA_pos\\.txt", full.names = TRUE)
     # out <- read_table(result, comment = "", header = TRUE)
     out <- vec_rbind(!!!out)
-    out <- out[c("GS", "SIZE", "ES", "NES", "NOM p-val", "FDR q-val")]
+    index <- as.integer(out$GS)
+    out <- out[c("ES", "NES", "NOM p-val", "FDR q-val")]
     out <- rename(out, c(
-        GS = "ids", SIZE = "size", ES = "es", NES = "nes",
+        ES = "es", NES = "nes",
         `NOM p-val` = "pvalue", `FDR q-val` = "fdr"
     ))
-    index <- as.integer(out$ids)
-    out$ids <- gs_data$ids[index]
-    out$terms <- gs_data$terms[index]
-    out$descriptions <- gs_data$descriptions[index]
-    out <- out[order(index), ]
-    out[c("ids", "terms", "descriptions", "size", "es", "nes", "pvalue", "fdr")]
+    out <- vec_cbind(vec_slice(gs_data, index), out)
+    vec_slice(out, order(index))
 }

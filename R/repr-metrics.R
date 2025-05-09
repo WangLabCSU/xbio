@@ -92,7 +92,7 @@ methods::setMethod(
                 "{.arg {`_arg`}} must be a single string of {.field .rnk} file path"
             )
         }
-        data <- read_table(metrics, header = FALSE)
+        data <- read_table(metrics, header = FALSE, comment = "", quote = "")
         # Call the data frame method
         repr_metrics(metrics = data, ..., `_arg` = `_arg`)
     }

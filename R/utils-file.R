@@ -157,24 +157,29 @@ write_lines <- function(text, path, eol = if (.Platform$OS.type == "windows") {
     invisible(text)
 }
 
-write_table <- function(data, path, sep = "\t", col.names = TRUE, ...) {
+write_table <- function(data, path, sep = "\t", col.names = TRUE, ...,
+                        na = "NA", quote = TRUE) {
     if (is_installed("data.table")) {
         getExportedValue("data.table", "fwrite")(
-            data, file = path, sep = sep, col.names = col.names, ...
+            data, file = path, sep = sep, col.names = col.names, ...,
+            na = na, quote = quote
         )
     } else if (is_installed("vroom")) {
         getExportedValue("vroom", "vroom_write")(
-            data, file = path, delim = sep, col_names = col.names, ...
+            data, file = path, delim = sep, col_names = col.names, ...,
+            na = na, quote = if (quote) "all" else "none"
         )
     } else if (is_installed("readr")) {
         getExportedValue("readr", "write_delim")(
-            data, file = path, delim = sep, col_names = col.names, ...
+            data, file = path, delim = sep, col_names = col.names, ...,
+            na = na, quote = if (quote) "all" else "none"
         )
     } else {
         utils::write.table(
             data,
             file = path, sep = sep, row.names = FALSE,
-            col.names = col.names, ...
+            col.names = col.names, ...,
+            na = na, quote = quote
         )
     }
 }
@@ -186,7 +191,8 @@ read_table <- function(path, sep = "\t", header = TRUE, ...,
         out <- getExportedValue("data.table", "fread")(
             file = path, sep = sep,
             header = header, ...,
-            fill = TRUE, skip = skip
+            fill = TRUE, skip = skip,
+            check.names = FALSE
         )
         getExportedValue("data.table", "setDF")(out)
     } else if (is_installed("vroom")) {
