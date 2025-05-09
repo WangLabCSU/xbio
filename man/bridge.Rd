@@ -12,7 +12,14 @@ bridge(source, target, method)
 \itemize{
 \item Over-Representation Analysis: \code{\link[=repr_threshold]{repr_threshold()}}.
 \item GSEA gene-permutation algorithm: \code{\link[=repr_metrics]{repr_metrics()}}.
-\item GSEA sample-permutation algorithm: A matrix.
+\item GSEA sample-permutation algorithm: A matrix-like object. Although this
+method also utilizes \code{\link[=repr_metrics]{repr_metrics()}}, it internally computes ranking
+metrics and performs permutations based on sample labels. Metric-related
+arguments should be specified within the \code{method} argument.
+
+\code{Note}: While matrices are not conceptually equivalent to biological
+process representations, we provide \code{\link[=repr_matrix]{repr_matrix()}} for stylistic
+consistency and user convenience.
 \item Rank-Rank Hypergeometric Overlap test: \code{\link[=repr_metrics]{repr_metrics()}}.
 }}
 
@@ -28,8 +35,8 @@ selected \code{method}.
 \item{method}{The scoring method to use:
 \itemize{
 \item Over-Representation Analysis: \code{\link[=ORA]{ORA()}}
-\item GSEA gene-permutation algorithm: \code{\link[=GSEAPrerank]{GSEAPrerank()}}, \code{\link[=GSEAGene]{GSEAGene()}},
-\code{\link[=GSEASimple]{GSEASimple()}} and \code{\link[=GSEAMultilevel]{GSEAMultilevel()}}.
+\item GSEA gene-permutation algorithm: \code{\link[=GSEAGene]{GSEAGene()}}, \code{\link[=GSEASimple]{GSEASimple()}},
+\code{\link[=GSEAMultilevel]{GSEAMultilevel()}}, and \code{\link[=GSEABroadGene]{GSEABroadGene()}}.
 \item GSEA sample-permutation algorithm: \code{\link[=GSEABroad]{GSEABroad()}} and \code{\link[=GSEASample]{GSEASample()}}.
 \item Rank-Rank Hypergeometric Overlap test: \code{\link[=RRHO]{RRHO()}}.
 }}

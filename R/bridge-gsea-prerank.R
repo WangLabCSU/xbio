@@ -3,13 +3,12 @@
 #' @name GSEAPrerank
 NULL
 
-#' @describeIn GSEAPrerank R-based preranked GSEA algorithm (official). See
-#' [`GSEA`][GSEA::GSEA] for details.
+#' @include utils-S7.R
 GSEAPrerank <- new_class("GSEAPrerank",
     properties = list(
         exponent = prop_number_decimal(
             setter = function(self, value) {
-                if (is.numeric(value)) value <- as.double(value)
+                if (is.integer(value)) value <- as.double(value)
                 prop(self, "exponent") <- value
                 self
             },
@@ -19,7 +18,7 @@ GSEAPrerank <- new_class("GSEAPrerank",
         nperm = prop_number_whole(
             min = 1,
             setter = function(self, value) {
-                if (is.numeric(value)) value <- as.integer(value)
+                if (is.double(value)) value <- as.integer(value)
                 prop(self, "nperm") <- value
                 self
             },
@@ -38,47 +37,8 @@ method(repr_target, GSEAPrerank) <- function(method, target) {
     repr_genesets(target, `_arg` = "target")
 }
 
-# GSEA method (official) -------------------------------
-method(bridge, GSEAPrerank) <- function(source, target, method) {
-    check_remote_installed(
-        "GSEA", "GSEA-MSigDB/GSEA_R",
-        "to use {.field GSEAPrerank} method"
-    )
-
-    # Prepare the output directory
-    odir <- tempdir()
-    dir_create(odir)
-
-    # Prepare the input file
-    rnk <- tempfile("rnk", fileext = ".rnk")
-    write_rnk(source, rnk)
-    on.exit(file.remove(rnk), add = TRUE)
-    gmt <- tempfile("gmt", fileext = ".gmt")
-    write_gmt(target, gmt)
-    on.exit(file.remove(gmt), add = TRUE)
-
-    # run GSEA
-    getExportedValue("GSEA", "GSEA")(
-        input.ds = rnk,
-        gs.db = gmt,
-        output.directory = odir,
-        reshuffling.type = "gene.labels",
-        nperm = method@nperm,
-        weighted.score.type = method@exponent,
-        fdr.q.val.threshold = 1,
-        adjust.FDR.q.val = TRUE,
-        gs.size.threshold.min = 0L,
-        gs.size.threshold.max = length(source),
-        preproc.type = 0L,
-        random.seed = sample.int(1e6L, 1L),
-        save.intermediate.results = FALSE,
-        use.fast.enrichment.routine = TRUE
-    )
-    odir
-}
-
 # prerank method ---------------------------------------
-#' @describeIn GSEAPrerank Rust-based preranked GSEA algorithm.
+#' @describeIn GSEAPrerank Rust-based GSEA gene-permutation algorithm.
 #' @export
 GSEAGene <- new_class("GSEAGene", GSEAPrerank,
     properties = list(
@@ -129,7 +89,6 @@ method(bridge, GSEAGene) <- function(source, target, method) {
 #' @describeIn GSEAPrerank `fgsea` algorithm. See
 #' [`fgseaSimple`][fgsea::fgseaSimple] for details.
 #' @export
-#' @include utils-S7.R
 GSEASimple <- new_class(
     "GSEASimple", GSEAPrerank,
     properties = list(
@@ -219,4 +178,84 @@ method(bridge, GSEAMultilevel) <- function(source, target, method) {
         nproc = method@threads,
         gseaParam = method@exponent
     )
+}
+
+# GSEA method (official) -------------------------------
+#' @describeIn GSEAPrerank R-based GSEA gene-permutation algorithm (official).
+#' See [`GSEA`][GSEA::GSEA] for details.
+#' @export
+GSEABroadGene <- new_class(
+    "GSEABroadGene", GSEAPrerank,
+    properties = list(
+        odir = prop_string(
+            allow_empty = FALSE, allow_na = TRUE,
+            default = NA_character_
+        )
+    )
+)
+
+S4_register(GSEABroadGene)
+
+method(bridge, GSEABroadGene) <- function(source, target, method) {
+    check_remote_installed(
+        "GSEA", "GSEA-MSigDB/GSEA_R",
+        "to use {.field GSEABroadGene} method"
+    )
+
+    # Prepare the output directory
+    if (is.null(odir <- method@odir) || is.na(odir)) {
+        odir <- tempfile("GSEABroadGene")
+        dir_create(odir)
+        on.exit(unlink(odir, recursive = TRUE, force = TRUE), add = TRUE)
+    } else {
+        dir_create(odir)
+    }
+
+    # Prepare the input file
+    rnk <- tempfile("rnk", fileext = ".rnk")
+    write_rnk(source, rnk)
+    on.exit(file.remove(rnk), add = TRUE)
+    gs_data <- new_data_frame(list(
+        ids = names(target),
+        terms = gs_terms(target),
+        descriptions = gs_descs(target)
+    ))
+    names(target) <- as.character(seq_len(vec_size(target)))
+    gmt <- tempfile("gmt", fileext = ".gmt")
+    write_gmt(target, gmt)
+    on.exit(file.remove(gmt), add = TRUE)
+
+    # run GSEA
+    out <- getExportedValue("GSEA", "GSEA")(
+        input.ds = rnk,
+        # input.cls = list(),
+        gs.db = gmt,
+        output.directory = odir,
+        gsea.type = "preranked",
+        reshuffling.type = "gene.labels",
+        nperm = method@nperm,
+        weighted.score.type = method@exponent,
+        fdr.q.val.threshold = 1,
+        adjust.FDR.q.val = FALSE,
+        gs.size.threshold.min = 0L,
+        gs.size.threshold.max = length(source),
+        preproc.type = 0L,
+        random.seed = sample.int(1e6L, 1L),
+        save.intermediate.results = FALSE,
+        use.fast.enrichment.routine = TRUE
+    )
+    # result <- list.files(odir, pattern = "NA_pos\\.txt", full.names = TRUE)
+    # out <- read_table(result, comment = "", header = TRUE)
+    out <- vec_rbind(!!!out)
+    out <- out[c("GS", "SIZE", "ES", "NES", "NOM p-val", "FDR q-val")]
+    out <- rename(out, c(
+        GS = "ids", SIZE = "size", ES = "es", NES = "nes",
+        `NOM p-val` = "pvalue", `FDR q-val` = "fdr"
+    ))
+    index <- as.integer(out$ids)
+    out$ids <- gs_data$ids[index]
+    out$terms <- gs_data$terms[index]
+    out$descriptions <- gs_data$descriptions[index]
+    out <- out[order(index), ]
+    out[c("ids", "terms", "descriptions", "size", "es", "nes", "pvalue", "fdr")]
 }

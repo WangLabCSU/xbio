@@ -7,7 +7,11 @@ write_rnk <- function(prerank, path) {
 
 # https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29
 write_gmt <- function(gs, path) {
-
+    data <- as.data.frame(gs)
+    data$genesets <- vapply(data$genesets, paste, character(1L),
+        collapse = "\t", USE.NAMES = FALSE
+    )
+    write_table(data, path, col.names = FALSE)
 }
 
 read_gmt <- function(path, ...) {

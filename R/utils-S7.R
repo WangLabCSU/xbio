@@ -95,3 +95,25 @@ prop_number_whole <- function(getter = NULL, setter = NULL, ...,
         ...
     )
 }
+
+prop_string <- function(getter = NULL, setter = NULL, ...,
+                        allow_empty = TRUE, allow_na = FALSE,
+                        allow_null = FALSE) {
+    new_property(
+        class_character,
+        getter = getter,
+        setter = setter,
+        validator = function(value) {
+            if (.rlang_check_string(
+                value,
+                allow_empty = allow_empty,
+                allow_na = allow_na,
+                allow_null = allow_null
+            )) {
+                return(NULL)
+            }
+            sprintf("must be a single string, not %s", obj_type_friendly(value))
+        },
+        ...
+    )
+}

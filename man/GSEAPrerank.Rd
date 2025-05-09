@@ -5,10 +5,9 @@
 \alias{GSEAGene}
 \alias{GSEASimple}
 \alias{GSEAMultilevel}
+\alias{GSEABroadGene}
 \title{GSEA prerank algorithm}
 \usage{
-GSEAPrerank(exponent = 1, nperm = 1000L)
-
 GSEAGene(exponent = 1, nperm = 1000, threads = NULL)
 
 GSEASimple(exponent = 1, nperm = 1000L, score_type = "std", threads = 1L)
@@ -21,21 +20,23 @@ GSEAMultilevel(
   score_type = "std",
   threads = 1L
 )
+
+GSEABroadGene(exponent = 1, nperm = 1000L, odir = NA_character_)
 }
 \description{
 GSEA prerank algorithm
 }
 \section{Functions}{
 \itemize{
-\item \code{GSEAPrerank()}: R-based preranked GSEA algorithm (official). See
-\code{\link[GSEA:GSEA]{GSEA}} for details.
-
-\item \code{GSEAGene()}: Rust-based preranked GSEA algorithm.
+\item \code{GSEAGene()}: Rust-based GSEA gene-permutation algorithm.
 
 \item \code{GSEASimple()}: \code{fgsea} algorithm. See
 \code{\link[fgsea:fgseaSimple]{fgseaSimple}} for details.
 
 \item \code{GSEAMultilevel()}: \code{fgsea} algorithm. See
 \code{\link[fgsea:fgseaMultilevel]{fgseaMultilevel}} for details.
+
+\item \code{GSEABroadGene()}: R-based GSEA gene-permutation algorithm (official).
+See \code{\link[GSEA:GSEA]{GSEA}} for details.
 
 }}

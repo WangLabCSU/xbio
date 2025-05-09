@@ -18,7 +18,14 @@
 #' `method`.
 #'  - Over-Representation Analysis: [`repr_threshold()`].
 #'  - GSEA gene-permutation algorithm: [`repr_metrics()`].
-#'  - GSEA sample-permutation algorithm: A matrix.
+#'  - GSEA sample-permutation algorithm: A matrix-like object. Although this
+#'    method also utilizes [`repr_metrics()`], it internally computes ranking
+#'    metrics and performs permutations based on sample labels. Metric-related
+#'    arguments should be specified within the `method` argument. 
+#' 
+#'    `Note`: While matrices are not conceptually equivalent to biological
+#'    process representations, we provide [`repr_matrix()`] for stylistic
+#'    consistency and user convenience.
 #'  - Rank-Rank Hypergeometric Overlap test: [`repr_metrics()`].
 #'
 #' @param target The input target used for associating, depending on the
@@ -30,8 +37,8 @@
 #'
 #' @param method The scoring method to use:
 #'  - Over-Representation Analysis: [ORA()]
-#'  - GSEA gene-permutation algorithm: [`GSEAPrerank()`], [`GSEAGene()`],
-#'    [`GSEASimple()`] and [`GSEAMultilevel()`].
+#'  - GSEA gene-permutation algorithm: [`GSEAGene()`], [`GSEASimple()`],
+#'    [`GSEAMultilevel()`], and [`GSEABroadGene()`].
 #'  - GSEA sample-permutation algorithm: [`GSEABroad()`] and [GSEASample()].
 #'  - Rank-Rank Hypergeometric Overlap test: [`RRHO()`].
 #' @export
@@ -39,7 +46,6 @@ methods::setGeneric(
     "bridge",
     signature = "method",
     function(source, target, method) {
-        # biobridger
         source <- repr_source(method, source)
         target <- repr_target(method, target)
         standardGeneric("bridge")
