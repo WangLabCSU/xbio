@@ -1,6 +1,6 @@
 #' @importFrom rlang caller_arg
-new_genesets <- function(genesets = list(), ...,
-                         ids = NULL, terms = NULL, descriptions = NULL,
+new_genesets <- function(genesets = list(),
+                         ids = NULL, terms = NULL, descriptions = NULL, ...,
                          arg_genesets = caller_arg(genesets),
                          arg_ids = caller_arg(ids),
                          arg_terms = caller_arg(terms),
@@ -50,16 +50,20 @@ new_genesets <- function(genesets = list(), ...,
             ))
         }
     }
-    genesets <- .mapply(function(geneset, term, description) {
-        new_geneset(geneset, term = term, description = description)
-    }, list(geneset = genesets, term = terms, description = descriptions), NULL)
+    genesets <- .mapply(
+        new_geneset, list(
+            id = ids, geneset = genesets,
+            term = terms, description = descriptions
+        ),
+        NULL
+    )
     names(genesets) <- ids
     new_vctr(genesets, ..., class = "xbio_genesets")
 }
 
-methods::setOldClass("xbio_genesets")
+methods::setOldClass("xbio_genesets") # Used by S4
 
-S3_genesets <- new_S3_class("xbio_genesets")
+S3_genesets <- new_S3_class("xbio_genesets") # Used by S7
 
 #' @export
 `names<-.xbio_genesets` <- function(x, value) {
@@ -70,7 +74,12 @@ S3_genesets <- new_S3_class("xbio_genesets")
     if (vec_any_missing(value) || any(value == "")) {
         cli::cli_abort("names cannot be missing or empty.")
     }
-    NextMethod()
+    genesets <- x
+    x <- .mapply(function(geneset, id) {
+        attr(geneset, "id") <- id
+        geneset
+    }, list(geneset = x, id = value), NULL)
+    vec_restore(NextMethod(), genesets)
 }
 
 #' @export
@@ -81,7 +90,7 @@ obj_print_header.xbio_genesets <- function(x, ...) {
 
 #' @export
 obj_print_data.xbio_genesets <- function(x, geneset_trunc = 6L,
-                                             trunc = 6L, ...) {
+                                         trunc = 6L, ...) {
     size <- vec_size(x)
     if (size == 0L) return(invisible(x)) # styler: off
     trunc <- max(as.integer(trunc), 2L)
@@ -227,22 +236,24 @@ vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
 
 #' @export
 vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
-    vec_cast.xbio_genesets.data.frame(new_data_frame(list(
-        ids = .subset2(x, "ids"),
-        terms = .subset2(x, "terms"),
-        descriptions = rep_len(NA_character_, vec_size(x)),
-        genes = .subset2(x, "genes")
-    )), to, ...)
+    vec_cast.xbio_genesets.data.frame(
+        new_data_frame(
+            list(
+                ids = .subset2(x, "ids"),
+                terms = .subset2(x, "terms"),
+                descriptions = rep_len(NA_character_, vec_size(x)),
+                genesets = .subset2(x, "genes")
+            )
+        ),
+        to, ...
+    )
 }
 
+#' @export
+as.data.frame.xbio_genesets <- function(x, ...) vec_cast(x, new_data_frame())
 
 #' @export
-as.data.frame.xbio_genesets <- function(x, ...) {
-    vec_cast(x, new_data_frame())
-}
-
-#' @export
-vec_cast.list.xbio_genesets <- function(x, to, ...) vec_proxy(x)
+vec_cast.list.xbio_genesets <- function(x, to, ...) vec_data(x)
 
 #' @export
 vec_cast.xbio_genesets.list <- function(x, to, ...) {
@@ -285,7 +296,7 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
             ))
         }
     }
-    new_genesets(x, descriptions = descriptions)
+    new_genesets(x, terms = terms, descriptions = descriptions)
 }
 
 #' @export
