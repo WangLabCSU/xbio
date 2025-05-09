@@ -10,6 +10,8 @@ pub struct GSEAOutput {
     pub es_pos: Vec<usize>,
     pub nes: Vec<f64>,
     pub pvalue: Vec<f64>,
+    // pub null: Vec<Vec<f64>>,
+    // pub mean: Vec<f64>,
 }
 
 impl GSEAOutput {
@@ -20,6 +22,8 @@ impl GSEAOutput {
             es_pos: Vec::with_capacity(n),
             nes: Vec::with_capacity(n),
             pvalue: Vec::with_capacity(n),
+            // null: Vec::with_capacity(n),
+            // mean: Vec::with_capacity(n),
         }
     }
 
@@ -36,6 +40,8 @@ impl GSEAOutput {
         self.es.push(es);
         self.es_pos.push(es_pos);
         self.running_es.push(running);
+        // self.null.push(null.to_owned());
+        // self.mean.push(mean);
     }
 
     pub fn add_empty(&mut self) {
@@ -44,18 +50,23 @@ impl GSEAOutput {
         self.es.push(f64::NAN);
         self.es_pos.push(0);
         self.running_es.push(vec![]);
+        // self.null.push(vec![]);
+        // self.mean.push(f64::NAN);
     }
 }
 
 impl From<GSEAOutput> for Robj {
     fn from(value: GSEAOutput) -> Self {
         let running_es_list: List = value.running_es.into_iter().collect();
+        // let null_list: List = value.null.into_iter().collect();
         list!(
             running_es = running_es_list,
             es = value.es,
             es_pos = value.es_pos,
             nes = value.nes,
-            pvalue = value.pvalue
+            pvalue = value.pvalue,
+            // null_list = null_list,
+            // mean = value.mean,
         )
         .into()
     }
@@ -187,15 +198,23 @@ pub fn gsea_es(
 ) -> f64 {
     hits.iter()
         .zip(weights)
-        .fold(0.0f64, |old, (hit, metric)| -> f64 {
-            let score = if *hit { metric * norm_pos } else { -norm_neg };
-            let new = old + score;
-            if old.abs() > new.abs() {
-                old
-            } else {
-                new
-            }
-        })
+        .fold(
+            (0.0f64, 0.0f64),
+            |(score, es), (hit, metric)| -> (f64, f64) {
+                let cumsum;
+                if *hit {
+                    cumsum = score + (metric * norm_pos)
+                } else {
+                    cumsum = score - norm_neg
+                };
+                if es.abs() > cumsum.abs() {
+                    (cumsum, es)
+                } else {
+                    (cumsum, cumsum)
+                }
+            },
+        )
+        .1 // Get the `es`
 }
 
 pub fn gsea_nes(es: f64, mean: f64) -> f64 {

@@ -1,5 +1,4 @@
 write_rnk <- function(prerank, path) {
-    prerank <- sort(prerank, decreasing = TRUE)
     write_table(
         data.frame(names = names(prerank), value = prerank),
         path = path, col.names = FALSE, quote = FALSE
@@ -9,11 +8,7 @@ write_rnk <- function(prerank, path) {
 # https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29
 write_gmt <- function(gs, path) {
     data <- as.data.frame(gs)[c("ids", "descriptions", "genesets")]
-    data$descriptions <- if_else(
-        is.na(data$descriptions),
-        "",
-        data$descriptions
-    )
+    data$descriptions <- replace_na(data$descriptions, "")
     lines <- vapply(vec_seq_along(data), function(i) {
         paste(unlist(vec_slice(data, i), TRUE, FALSE), collapse = "\t")
     }, character(1L), USE.NAMES = FALSE)

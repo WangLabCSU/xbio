@@ -73,8 +73,6 @@ method(bridge, GSEAGene) <- function(source, target, method) {
         threads = method@threads,
         seed = sample.int(1e6L, 1L)
     )
-    indices <- out$indices
-    out$indices <- NULL
     new_data_frame(c(
         list(
             ids = names(target),
@@ -251,10 +249,7 @@ method(bridge, GSEABroadGene) <- function(source, target, method) {
     out <- vec_rbind(!!!out)
     index <- as.integer(out$GS)
     out <- out[c("ES", "NES", "NOM p-val", "FDR q-val")]
-    out <- rename(out, c(
-        ES = "es", NES = "nes",
-        `NOM p-val` = "pvalue", `FDR q-val` = "fdr"
-    ))
+    names(out) <- c("es", "nes", "pvalue", "fdr")
     out <- vec_cbind(vec_slice(gs_data, index), out)
     vec_slice(out, order(index))
 }
