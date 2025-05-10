@@ -1,6 +1,6 @@
 #' Create ranking metrics representation
 #'
-#' @return A `xbio_metrics` object.
+#' @return A `xbio_metrics` object, which is a named numeric vector.
 methods::setGeneric("repr_metrics", function(metrics, ..., `_arg` = NULL) {
     # `_arg` is not used by user, but used by the internal to provide better
     # message
