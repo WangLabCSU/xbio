@@ -39,6 +39,13 @@ method(repr_target, GSEAPrerank) <- function(method, target) {
 }
 
 # prerank method ---------------------------------------
+# Adaptive Tail Approximation for GSEA (ATA-GSEA)
+# The standard empirical P-value in GSEA is slow and inaccurate for small
+# P-values because:
+# 1. It relies on many permutations (often 1,000–100,000),
+# 2. For small observed enrichment scores, extreme tail behavior is poorly
+#    sampled
+# 3. Memory and runtime become limiting for large datasets.
 #' @describeIn GSEAPrerank Rust-based GSEA gene-permutation algorithm.
 #' @export
 GSEAGene <- new_class("GSEAGene", GSEAPrerank,

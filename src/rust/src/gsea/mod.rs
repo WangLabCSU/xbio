@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use algorithm::GSEAOutput;
 use extendr_api::prelude::*;
 
 // Module used to do the actual work, calcualte the enrichment scores
@@ -28,7 +29,11 @@ fn gsea_gene_permutate(
     nperm: usize,
     threads: usize,
     seed: usize,
-) -> std::result::Result<algorithm::GSEAOutput, String> {
+) -> std::result::Result<GSEAOutput, String> {
+    if nperm.le(&0usize) {
+        return Err("`nperm` must be a positive integer".to_string());
+    }
+
     //  Check and parse `identifiers`
     let identifiers: Vec<&str> = identifiers
         .as_str_vector()
@@ -39,17 +44,17 @@ fn gsea_gene_permutate(
         .as_real_slice()
         .ok_or("`metrics` must be a numeric")?;
 
-    // Check and parse `genesets`
-    let geneset_list = genesets.as_list().ok_or("`genesets` must be a list")?;
-    let mut input_gs: Vec<HashSet<&str>> =
-        Vec::with_capacity(geneset_list.len());
-    for geneset in geneset_list.as_slice() {
+    // Check and parse `geneset_list`
+    let input_gs = genesets.as_list().ok_or("`genesets` must be a list")?;
+    let mut geneset_list: Vec<HashSet<&str>> =
+        Vec::with_capacity(input_gs.len());
+    for geneset in input_gs.as_slice() {
         let gs = geneset
             .as_str_vector()
             .ok_or("`genesets` must be a list of character")?
             .into_iter()
             .collect::<HashSet<&str>>();
-        input_gs.push(gs);
+        geneset_list.push(gs);
     }
 
     // Set rayon threads
@@ -63,7 +68,7 @@ fn gsea_gene_permutate(
         permutate_gene::gsea_gene(
             &identifiers,
             metrics,
-            &input_gs,
+            &geneset_list,
             exponent,
             nperm,
             seed,

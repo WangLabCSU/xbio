@@ -97,8 +97,7 @@ prop_number_whole <- function(getter = NULL, setter = NULL, ...,
 }
 
 prop_string <- function(getter = NULL, setter = NULL, ...,
-                        allow_empty = TRUE, allow_na = FALSE,
-                        allow_null = FALSE) {
+                        allow_empty = TRUE, allow_na = FALSE) {
     new_property(
         class_character,
         getter = getter,
@@ -108,11 +107,45 @@ prop_string <- function(getter = NULL, setter = NULL, ...,
                 value,
                 allow_empty = allow_empty,
                 allow_na = allow_na,
-                allow_null = allow_null
+                allow_null = FALSE
             )) {
                 return(NULL)
             }
-            sprintf("must be a single string, not %s", obj_type_friendly(value))
+            sprintf(
+                "must be %s, not %s",
+                allow_what_type(
+                    "a single string",
+                    allow_na = allow_na,
+                    allow_null = FALSE
+                ),
+                obj_type_friendly(value)
+            )
+        },
+        ...
+    )
+}
+
+prop_bool <- function(getter = NULL, setter = NULL, ..., allow_na = FALSE) {
+    new_property(
+        class_logical,
+        getter = getter,
+        setter = setter,
+        validator = function(value) {
+            if (.rlang_check_bool(value,
+                allow_na = allow_na,
+                allow_null = FALSE
+            )) {
+                return(NULL)
+            }
+            sprintf(
+                "must be %s, not %s",
+                allow_what_type(
+                    c("`TRUE`", "`FALSE`"),
+                    allow_na = allow_na,
+                    allow_null = FALSE
+                ),
+                obj_type_friendly(value)
+            )
         },
         ...
     )
