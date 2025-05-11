@@ -5,14 +5,6 @@ test_that("creates new_genesets with named gene sets", {
     expect_named(obj, c("a", "b"))
 })
 
-test_that("errors when ids are missing and genesets are unnamed", {
-    gs <- list(c("A", "B"), c("C", "D"))
-    expect_error(
-        new_genesets(gs),
-        regexp = "must be provided or"
-    )
-})
-
 test_that("assigns ids as names when provided", {
     gs <- list(c("A", "B"), c("C", "D"))
     ids <- c("Set1", "Set2")
@@ -71,26 +63,6 @@ test_that("names<-.xbio_genesets preserves descriptions when renaming", {
     names(obj) <- c("x", "y")
     expect_named(obj, c("x", "y"))
     expect_equal(gs_descs(obj), c("desc1", "desc2"))
-})
-
-test_that("names<-.xbio_genesets rejects NULL in names", {
-    gs <- list(a = c("A", "B"))
-    obj <- new_genesets(gs)
-    expect_error(
-        names(obj) <- NULL,
-        "Cannot remove the names of genesets"
-    )
-})
-
-test_that("names<-.xbio_genesets rejects NA in names", {
-    x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
-    expect_error(names(x) <- c("Valid", NA), "names cannot be missing or empty")
-})
-
-test_that("names<-.xbio_genesets rejects empty string in names", {
-    x <- new_genesets(list(a = c("TP53", "EGFR"), b = c("BRCA1", "BRCA2")))
-    new_names <- c("", "Valid")
-    expect_error(names(x) <- new_names, "names cannot be missing or empty")
 })
 
 # Subsetting and indexing

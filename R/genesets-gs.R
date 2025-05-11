@@ -1,3 +1,14 @@
+gs_ids <- function(gs) {
+    assert_s3_class(gs, "xbio_genesets")
+    vapply(
+        gs, function(geneset) {
+            attr(geneset, "id") %||% NA_character_
+        },
+        character(1L),
+        USE.NAMES = FALSE
+    )
+}
+
 gs_terms <- function(gs) {
     assert_s3_class(gs, "xbio_genesets")
     vapply(

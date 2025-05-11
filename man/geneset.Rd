@@ -2,26 +2,26 @@
 % Please edit documentation in R/geneset-class.R
 \name{geneset}
 \alias{geneset}
-\alias{geneset.character}
 \alias{geneset.default}
+\alias{geneset.character}
 \title{Create a single geneset}
 \usage{
-geneset(id, geneset, term = NULL, description = NULL, ...)
+geneset(geneset, ...)
 
-\method{geneset}{character}(id, geneset, term = NULL, description = NULL, ...)
+\method{geneset}{default}(geneset, id = NULL, term = NULL, description = NULL, ...)
 
-\method{geneset}{default}(id, geneset, term = NULL, description = NULL, ...)
+\method{geneset}{character}(geneset, id = NULL, term = NULL, description = NULL, ...)
 }
 \arguments{
-\item{id}{A single string of the geneset ID.}
-
 \item{geneset}{A character of geneset elements.}
+
+\item{...}{Additional attributes to be added to the geneset.}
+
+\item{id}{A single string of the geneset ID.}
 
 \item{term}{A single string of the geneset term.}
 
 \item{description}{A single string of the geneset description.}
-
-\item{...}{Additional attributes to be added to the geneset.}
 }
 \description{
 Create a single geneset

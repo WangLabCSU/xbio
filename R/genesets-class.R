@@ -6,12 +6,6 @@ new_genesets <- function(genesets = list(),
                          arg_terms = caller_arg(terms),
                          arg_descriptions = caller_arg(descriptions)) {
     if (is.null(ids)) {
-        if (!rlang::is_named2(genesets)) {
-            cli::cli_abort(paste(
-                "{.arg {arg_ids}} must be provided or {.arg {arg_genesets}}",
-                "should be named"
-            ))
-        }
         ids <- names(genesets)
     } else {
         ids <- vec_cast(ids, character(), x_arg = arg_ids)
@@ -20,9 +14,6 @@ new_genesets <- function(genesets = list(),
                 "{.arg {arg_ids}} ({vec_size(ids)}) must have",
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
-        }
-        if (vec_any_missing(ids) || any(ids == "")) {
-            cli::cli_abort("{.arg ids} cannot be missing or empty.")
         }
     }
     if (is.null(terms)) {
@@ -52,8 +43,8 @@ new_genesets <- function(genesets = list(),
     }
     genesets <- .mapply(
         new_geneset, list(
-            id = ids, geneset = genesets,
-            term = terms, description = descriptions
+            id = ids %||% rep_len(list(NULL), vec_size(genesets)),
+            geneset = genesets, term = terms, description = descriptions
         ),
         NULL
     )
@@ -67,20 +58,25 @@ S3_genesets <- new_S3_class("xbio_genesets") # Used by S7
 
 #' @export
 `names<-.xbio_genesets` <- function(x, value) {
-    if (is.null(value)) {
-        cli::cli_abort("Cannot remove the names of genesets")
+    if (!is.null(value)) {
+        value <- vec_cast(value, character(), x_arg = "names")
+        vec_check_size(value, vec_size(x), arg = "names")
     }
-    value <- vec_cast(value, character(), x_arg = "names")
-    if (vec_any_missing(value) || any(value == "")) {
-        cli::cli_abort("names cannot be missing or empty.")
-    }
-    genesets <- x
-    x <- .mapply(function(geneset, id) {
-        attr(geneset, "id") <- id
-        geneset
-    }, list(geneset = x, id = value), NULL)
-    vec_restore(NextMethod(), genesets)
+    # we always ensure the names is the same with the element id
+    old <- x
+    x <- .mapply(
+        function(geneset, id) {
+            attr(geneset, "id") <- id
+            geneset
+        },
+        list(geneset = x, id = value %||% rep_len(list(NULL), vec_size(x))),
+        NULL
+    )
+    vec_restore(NextMethod(), old)
 }
+
+#' @export
+vec_ptype_abbr.xbio_genesets <- function(x, ...) "genesets"
 
 #' @export
 obj_print_header.xbio_genesets <- function(x, ...) {
@@ -94,11 +90,13 @@ obj_print_data.xbio_genesets <- function(x, geneset_trunc = 6L,
     size <- vec_size(x)
     if (size == 0L) return(invisible(x)) # styler: off
     trunc <- max(as.integer(trunc), 2L)
+    ids <- gs_ids(x)
     if (size > trunc) {
         before <- ceiling(trunc / 2L)
         after <- rev(seq_len(trunc - before))
         before <- seq_len(before)
         x <- vec_c(vec_slice(x, before), vec_slice(x, size - after))
+        ids <- vec_c(vec_slice(ids, before), vec_slice(ids, size - after))
     }
     geneset_trunc <- max(as.integer(geneset_trunc), 2L)
     geneset_before <- ceiling(geneset_trunc / 2L)
@@ -115,7 +113,7 @@ obj_print_data.xbio_genesets <- function(x, geneset_trunc = 6L,
         paste0(geneset, collapse = ", ")
     }, character(1L), USE.NAMES = FALSE)
     output <- paste(
-        format(names(x), justify = "right"),
+        format(ids, justify = "right"),
         format(content, justify = "left"),
         sep = ": "
     )
@@ -167,7 +165,7 @@ vec_cast.xbio_genesets.xbio_genesets <- function(x, to, ...) {
 
 #' @export
 vec_cast.data.frame.xbio_genesets <- function(x, to, ...) {
-    ids <- names(x)
+    ids <- gs_ids(x)
     terms <- gs_terms(x)
     descriptions <- gs_descs(x)
     genesets <- lapply(x, vec_cast, to = character())
@@ -182,7 +180,9 @@ vec_cast.data.frame.xbio_genesets <- function(x, to, ...) {
 #' @export
 vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
     # Nest the term and descriptions columns
-    if (ncol(x) == 2L) {
+    if (ncol(x) == 1L) {
+        new_genesets(list(x[[1L]]))
+    } else if (ncol(x) == 2L) {
         ids <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
         locs <- vec_group_loc(ids)
         new_genesets(
@@ -223,8 +223,7 @@ vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
         new_genesets(
             vec_chop(x[[4L]], .subset2(locs, "loc")),
             ids = .subset2(keys, "ids"),
-            terms = terms,
-            descriptions = descriptions
+            terms = terms, descriptions = descriptions
         )
     } else {
         cli::cli_abort(paste(
@@ -257,9 +256,6 @@ vec_cast.list.xbio_genesets <- function(x, to, ...) vec_data(x)
 
 #' @export
 vec_cast.xbio_genesets.list <- function(x, to, ...) {
-    if (!rlang::is_named2(x)) {
-        cli::cli_abort("Conversion to {.cls genesets} requires a named list.")
-    }
     if (is.null(terms <- attr(x, "terms"))) {
         terms <- vapply(x, function(e) {
             if (is.null(o <- attr(x, "term"))) {
