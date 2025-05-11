@@ -27,7 +27,8 @@ whether to use caching:
 By default, \code{NULL} is used, which means read from saved file if available;
 otherwise, download and save the data.}
 
-\item{save}{A string specifying the file path to read from or save to.}
+\item{save}{A string specifying the file path to read from or save to. File
+extension \code{".rds"} will be automatically added.}
 
 \item{verbose}{A single logical value indicates whether the process should be
 verbose.}

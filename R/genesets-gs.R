@@ -48,6 +48,35 @@ gs_map <- function(gs, annodb, key_source, key_target, ...) {
     })
 }
 
+gs_biomart <- function(gs, mart, key_source, key_target, ...) {
+    assert_s3_class(gs, "xbio_genesets")
+    assert_string(key_source, allow_empty = FALSE)
+    assert_string(key_target, allow_empty = FALSE)
+    if (vec_size(gs) == 0L) return(gs) # styler: off
+    check_bioc_installed("biomaRt")
+    if (missing(mart) || !inherits(mart, "Mart")) {
+        cli::cli_abort(c(
+            "{.arg mart} must be a valid {.cls Mart} object.",
+            i = "To create a {.cls Mart} object use the function: {.fn biomaRt::useMart}",
+            i = "Check {.code ?biomaRt::useMart} for more information."
+        ))
+    }
+    # mapping the the genes in genesets into keytype
+    gs_lapply(gs, function(geneset) {
+        if (length(geneset) == 0L) return(geneset) # styler: off
+        out <- biomaRt::getBM(
+            mart = mart,
+            values = geneset,
+            attributes = key_target,
+            filters = key_source,
+            ...
+        )
+        out <- as.character(.subset2(out, key_target))
+        out[is.na(out) | out == ""] <- NA_character_
+        out
+    })
+}
+
 #' @keywords internal
 #' @noRd
 gs_trim <- function(gs) {

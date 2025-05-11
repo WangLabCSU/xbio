@@ -1,48 +1,22 @@
-godb <- function(database, organism = NULL, strategy = NULL, cache = NULL,
-                 verbose = TRUE) {
-    organism <- check_organism(organism)
-    if (identical(database, "genesets")) {
-        description <- sprintf(
-            "{.field %s} for {.field %s} organism in KEGG",
-            database, organism
-        )
-    } else {
-        description <- sprintf(
-            "{.field %s} database for {.field %s} organism in KEGG",
-            database, organism
-        )
-    }
-    cachedir <- file_path(dbdir("KEGG"), database)
-    cachefile <- organism
-    db(
-        godb_download, database, organism,
-        strategy = strategy, cache = cache,
-        cachedir = cachedir, cachefile = cachefile,
-        description = description, verbose = verbose
-    )
+godb <- function(database, strategy = NULL, save = NULL, verbose = TRUE) {
+
 }
 
-godb_download <- function(database, organism) {
-    if (identical(database, "organism")) {
-        out <- KEGGREST::keggList("organism")
-        # https://stackoverflow.com/questions/6819804/convert-a-matrix-to-a-list-of-column-vectors
-        # For performances
-        out <- lapply(seq_len(ncol(out)), function(i) out[, i, drop = TRUE])
-        structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
-    } else if (identical(database, "genesets")) {
-        pathway2genes <- KEGGREST::keggLink(organism, "pathway")
-        pathways <- sub("^[^:]+:", "", names(pathway2genes))
-        descriptions <- KEGGREST::keggList("pathway", organism)
-        genes <- sub("^[^:]+:", "", pathway2genes)
-        new_data_frame(list(
-            pathways = pathways,
-            descriptions = descriptions[pathways],
-            genes = genes
-        ), class = sprintf("%s_kegg_genesets", pkg_nm()))
+godb_download <- function(database) {
+    if (identical(database, "ontology")) {
+        url <- "https://current.geneontology.org/ontology/go-basic.obo"
     } else {
-        items <- KEGGREST::keggList(database, organism)
-        out <- keggdb_get0(names(items))
-        structure(out, class = sprintf("%s_kegg_%s", pkg_nm(), database))
+        url <- sprintf(
+            "http://current.geneontology.org/annotations/%s.gaf.gz",
+            database
+        )
+    }
+    ofile <- file.path(cache_dir(), "GO", basename(url))
+    utils::download.file(url, ofile)
+    if (identical(database, "ontology")) {
+        read_lines(ofile)
+    } else {
+        read_table(ofile)
     }
 }
 

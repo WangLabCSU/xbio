@@ -16,7 +16,8 @@
 #' By default, `NULL` is used, which means read from saved file if available;
 #' otherwise, download and save the data.
 #'
-#' @param save A string specifying the file path to read from or save to.
+#' @param save A string specifying the file path to read from or save to. File
+#' extension `".rds"` will be automatically added.
 #' @param verbose A single logical value indicates whether the process should be
 #' verbose.
 #' @return A list of contents for each entries.
