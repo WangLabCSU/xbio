@@ -280,7 +280,10 @@ impl GSEAPermutate {
             n = neg_null.iter().filter(|score| ***score <= self.es).count()
                 as f64;
         }
-        n / total
+        // https://stats.stackexchange.com/questions/299449/is-empirical-fdr-denominated-by-measurements-or-by-experiments
+        // to be more precise, the permutation p-value
+        // see Phipson & Smyth, 2010
+        (n + 1.0f64) / (total + 1.0f64)
     }
 
     fn normalize_null(&self, pos_mean: f64, neg_mean: f64) -> Vec<f64> {
