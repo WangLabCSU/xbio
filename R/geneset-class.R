@@ -42,7 +42,25 @@ geneset.default <- function(id, geneset, term = NULL,
     )
 }
 
-new_geneset <- function(id = NA_character_, geneset = character(),
+as_geneset <- function(x, ...) UseMethod("as_geneset")
+
+#' @export
+as_geneset.xbio_geneset <- function(x, ...) x
+
+#' @export
+as_geneset.GeneSet <- function(x, ...) {
+    rlang::check_dots_empty()
+    vec_cast.GeneSet.xbio_geneset(x)
+}
+
+#' @export
+as_geneset.character <- function(x, id, term = NULL, description = NULL, ...) {
+    rlang::check_dots_empty()
+    assert_string(id, allow_empty = FALSE)
+    geneset.character(id = id, geneset = x)
+}
+
+new_geneset <- function(id, geneset = character(),
                         term = NULL,
                         description = NULL, ...,
                         class = NULL) {
@@ -115,6 +133,7 @@ vec_cast.xbio_geneset.GeneSet <- function(x, to, ...,
                                           x_arg = caller_arg(x),
                                           to_arg = "",
                                           call = caller_env()) {
+    assert_string(x@setName, allow_empty = FALSE, arg = "@setName")
     slots <- methods::slotNames(x)
     values <- lapply(slots, function(nm) methods::slot(x, nm))
     names(values) <- slots
