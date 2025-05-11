@@ -1,26 +1,27 @@
 #' @importFrom rlang caller_call arg_match0
-db <- function(download, ..., strategy, cache, cachedir, cachefile, description,
+db <- function(download, ..., strategy, output, odir, ofile, description,
                verbose, arg_strategy = caller_arg(strategy),
                call = caller_call()) {
     if (!is.null(strategy)) {
         strategy <- arg_match0(
             strategy,
-            c("read", "cache", "download"),
+            c("read", "save", "download"),
             arg_nm = arg_strategy,
             error_call = call
         )
     }
-    if (!is.null(cache)) {
-        cachedir <- getwd()
-        cachefile <- cache
+    if (is.null(output)) {
+        output <- file_path(odir, ofile, ext = "rds")
+        if (identical(strategy, "save")) dir_create(odir, recursive = TRUE)
+    } else {
+        output <- paste0(output, ".rds")
     }
-    cached <- file_path(cachedir, cachefile, ext = "rds")
     if (is.null(strategy) || identical(strategy, "read")) {
-        if (file.exists(cached)) {
-            out <- readRDS(cached)
+        if (file.exists(output)) {
+            out <- readRDS(output)
             if (isTRUE(verbose)) {
                 cli::cli_inform(c(
-                    "Using cached file: {.path {cached}}",
+                    "Using saved file: {.path {output}}",
                     " " = sprintf(
                         "Snapshot date: %s",
                         as.character(.subset2(out, "datetime"), digits = 0L)
@@ -31,22 +32,21 @@ db <- function(download, ..., strategy, cache, cachedir, cachefile, description,
         } else if (identical(strategy, "read")) {
             cli::cli_abort(
                 c(
-                    "No cached file {.path {cached}} found",
-                    i = sprintf("Please cache %s first", description)
+                    "No file {.path {output}} found",
+                    i = sprintf("Please save %s first", description)
                 ),
                 call = call
             )
         }
-        strategy <- "cache"
+        strategy <- "save"
     }
     if (isTRUE(verbose)) cli::cli_inform(sprintf("Downloading %s", description))
     out <- download(...)
-    if (identical(strategy, "cache")) {
-        dir_create(cachedir, recursive = TRUE)
+    if (identical(strategy, "save")) {
         if (isTRUE(verbose)) {
-            cli::cli_inform(sprintf("Caching %s", description))
+            cli::cli_inform(sprintf("Saving %s", description))
         }
-        saveRDS(list(data = out, datetime = Sys.time()), file = cached)
+        saveRDS(list(data = out, datetime = Sys.time()), file = output)
     }
     out
 }

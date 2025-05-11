@@ -9,21 +9,20 @@
 #' `keggdb("organism")$organism`.
 #' @param strategy Character string specifying how to access the database and
 #' whether to use caching:
-#'  - `"read"`: Read from cache only. Error if not cached.
-#'  - `"download"`: Download fresh data. Do not cache it.
-#'  - `"cache"`: Download data and cache it locally.
+#'  - `"read"`: Read from the saved file only. Error if not exist.
+#'  - `"download"`: Download fresh data only. Do not save it.
+#'  - `"save"`: Download data and save it locally.
 #'
-#' By default, `NULL` is used, which means read from cache if available;
-#' otherwise, download and cache the data.
+#' By default, `NULL` is used, which means read from saved file if available;
+#' otherwise, download and save the data.
 #'
-#' @param cache cache A string specifying the file path to read from or save to
-#' when using cache.
+#' @param save A string specifying the file path to read from or save to.
 #' @param verbose A single logical value indicates whether the process should be
 #' verbose.
 #' @return A list of contents for each entries.
 #' @importFrom rlang arg_match0
 #' @export
-keggdb <- function(database, organism = NULL, strategy = NULL, cache = NULL,
+keggdb <- function(database, organism = NULL, strategy = NULL, save = NULL,
                    verbose = TRUE) {
     check_bioc_installed("KEGGREST", "to download from KEGG")
     database <- arg_match0(database, c(
@@ -37,8 +36,8 @@ keggdb <- function(database, organism = NULL, strategy = NULL, cache = NULL,
             ))
         }
         description <- "{.field organism} database in KEGG"
-        cachedir <- dbdir("KEGG")
-        cachefile <- "organism"
+        odir <- dbdir("KEGG")
+        ofile <- "organism"
     } else {
         organism <- check_organism(organism)
         if (identical(database, "genesets")) {
@@ -52,13 +51,13 @@ keggdb <- function(database, organism = NULL, strategy = NULL, cache = NULL,
                 database, organism
             )
         }
-        cachedir <- file_path(dbdir("KEGG"), database)
-        cachefile <- organism
+        odir <- file_path(dbdir("KEGG"), database)
+        ofile <- organism
     }
     db(
         keggdb_download, database, organism,
-        strategy = strategy, cache = cache,
-        cachedir = cachedir, cachefile = cachefile,
+        strategy = strategy, output = save,
+        odir = odir, ofile = ofile,
         description = description, verbose = verbose
     )
 }

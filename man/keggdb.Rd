@@ -4,13 +4,7 @@
 \alias{keggdb}
 \title{Get database from KEGG}
 \usage{
-keggdb(
-  database,
-  organism = NULL,
-  strategy = NULL,
-  cache = NULL,
-  verbose = TRUE
-)
+keggdb(database, organism = NULL, strategy = NULL, save = NULL, verbose = TRUE)
 }
 \arguments{
 \item{database}{A KEGG database (list available via
@@ -25,16 +19,15 @@ analysis.}
 \item{strategy}{Character string specifying how to access the database and
 whether to use caching:
 \itemize{
-\item \code{"read"}: Read from cache only. Error if not cached.
-\item \code{"download"}: Download fresh data. Do not cache it.
-\item \code{"cache"}: Download data and cache it locally.
+\item \code{"read"}: Read from the saved file only. Error if not exist.
+\item \code{"download"}: Download fresh data only. Do not save it.
+\item \code{"save"}: Download data and save it locally.
 }
 
-By default, \code{NULL} is used, which means read from cache if available;
-otherwise, download and cache the data.}
+By default, \code{NULL} is used, which means read from saved file if available;
+otherwise, download and save the data.}
 
-\item{cache}{cache A string specifying the file path to read from or save to
-when using cache.}
+\item{save}{A string specifying the file path to read from or save to.}
 
 \item{verbose}{A single logical value indicates whether the process should be
 verbose.}
