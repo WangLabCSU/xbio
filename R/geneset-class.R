@@ -42,7 +42,7 @@ geneset.default <- function(id, geneset, term = NULL,
     )
 }
 
-new_geneset <- function(id, geneset = character(),
+new_geneset <- function(id = NA_character_, geneset = character(),
                         term = NULL,
                         description = NULL, ...,
                         class = NULL) {
@@ -78,6 +78,16 @@ vec_ptype2.NULL.xbio_geneset <- function(x, y, ...) {
     y
 }
 
+#' @export
+vec_ptype2.GeneSet.NULL <- function(x, y, ...) {
+    x
+}
+
+#' @export
+vec_ptype2.NULL.GeneSet <- function(x, y, ...) {
+    y
+}
+
 # WE ALWAYS RETRUN A CHARACTER WHEN COMBINED WITH CHARACTER
 # Since the elements of a geneset must be unique, if we return
 # a geneset, it's not possible to keep only unique elements
@@ -98,4 +108,47 @@ vec_cast.character.xbio_geneset <- function(x, to, ...,
                                             to_arg = "",
                                             call = caller_env()) {
     vec_data(x)
+}
+
+#' @export
+vec_cast.xbio_geneset.GeneSet <- function(x, to, ...,
+                                          x_arg = caller_arg(x),
+                                          to_arg = "",
+                                          call = caller_env()) {
+    slots <- methods::slotNames(x)
+    values <- lapply(slots, function(nm) methods::slot(x, nm))
+    names(values) <- slots
+    rlang::inject(geneset(
+        values$setName, values$geneIds,
+        term = values$shortDescription,
+        description = values$longDescription,
+        !!!values[
+            !names(values) %in% c(
+                "setName", "geneIds",
+                "shortDescription", "longDescription"
+            )
+        ]
+    ))
+}
+
+#' @export
+vec_cast.GeneSet.xbio_geneset <- function(x, to, ...,
+                                          x_arg = caller_arg(x),
+                                          to_arg = "",
+                                          call = caller_env()) {
+    slots <- c(
+        "geneIdType", "setIdentifier", "organism",
+        "pubMedIds", "urls", "contributor", "version", "creationDate",
+        "collectionType"
+    )
+    names(slots) <- slots
+    slots <- lapply(slots, function(slot) attr(x, slot, exact = TRUE))
+    slots <- slots[vapply(slots, is.null, logical(1L), USE.NAMES = FALSE)]
+    rlang::inject(GSEABase::GeneSet(
+        as.character(x),
+        setName = attr(x, "id"),
+        shortDescription = attr(x, "term"),
+        longDescription = attr(x, "description"),
+        !!!slots
+    ))
 }
