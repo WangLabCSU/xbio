@@ -80,31 +80,33 @@ impl<'a, 'b> GSEAInput<'a> {
         let norm_pos = norm_pos.map_or_else(|| self.norm_pos(hits), |s| s);
         let norm_neg = norm_neg.map_or_else(|| self.norm_neg(hits), |s| s);
         let hits = self.switch_hits(hits);
+        let mut nhits = hits.len();
         let mut hit_flags = vec![false; self.weights.len()];
         for &i in hits {
             debug_assert!(i < self.weights.len());
             hit_flags[i] = true;
         }
         let mut es = 0.0f64;
-        let mut running = 0.0f64;
-        let mut hit_seen = 0usize;
-        let nhits = hits.len();
+        let mut score = 0.0f64;
         for (i, hit_flag) in hit_flags.iter().enumerate() {
             if *hit_flag {
-                hit_seen += 1;
-                // SAFETY: i is guaranteed in-bounds by hit_flags and debug_assert.
-                running += unsafe { self.weights.get_unchecked(i) * norm_pos }
-            } else {
-                running += -norm_neg
-            };
-            if running.abs() > es.abs() {
-                es = running;
-                // early exit when no hit remains
-                // which means all follows will move `es` to zero
-                if hit_seen == nhits {
-                    break;
+                nhits -= 1;
+                // SAFETY: i is guaranteed in-bounds by `hit_flags`.
+                score += unsafe { self.weights.get_unchecked(i) * norm_pos };
+                if score.abs() > es.abs() {
+                    es = score;
+                    // early exit when no hit remains
+                    // which means all follows will move `es` to zero
+                    if nhits == 0 {
+                        break;
+                    }
                 }
-            }
+            } else {
+                score += -norm_neg;
+                if score.abs() > es.abs() {
+                    es = score;
+                }
+            };
         }
         es
     }
