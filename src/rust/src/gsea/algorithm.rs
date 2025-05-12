@@ -95,11 +95,11 @@ impl<'a, 'b> GSEAInput<'a> {
                 score += unsafe { self.weights.get_unchecked(i) * norm_pos };
                 if score.abs() > es.abs() {
                     es = score;
-                    // early exit when no hit remains
-                    // which means all follows will move `es` to zero
-                    if nhits == 0 {
-                        break;
-                    }
+                }
+                // early exit when no hit remains
+                // which means all follows will move `es` to zero
+                if nhits == 0 {
+                    break;
                 }
             } else {
                 score += -norm_neg;
