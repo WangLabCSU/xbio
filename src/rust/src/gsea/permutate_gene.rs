@@ -12,7 +12,7 @@ pub(super) fn gsea_gene(
     genesets: &Vec<HashSet<&str>>,
     exponent: f64,
     nperm: usize,
-    seed: usize,
+    seed: u64,
 ) -> GSEAOutput {
     let (_, ids, weights) = gsea_prerank(identifiers, metrics, exponent);
     let permutations: GSEAPermutate = genesets
@@ -23,7 +23,7 @@ pub(super) fn gsea_gene(
             if input.hits.len() > 0 {
                 let norm_neg = input.norm_neg(None);
                 let score = input.score(None, None, Some(norm_neg));
-                let null = permutate_hits(&input, norm_neg, nperm, seed as u64);
+                let null = permutate_hits(&input, norm_neg, nperm, seed);
                 Some(GSEARunning { score, null })
             } else {
                 None

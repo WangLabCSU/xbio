@@ -72,7 +72,7 @@ fn gsea_gene_permutate(
             &geneset_list,
             exponent,
             nperm,
-            seed,
+            seed as u64,
         )
     });
 
