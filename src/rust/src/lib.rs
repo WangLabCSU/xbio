@@ -1,6 +1,7 @@
 use extendr_api::{self, prelude::*};
 
 mod gsea;
+mod darray;
 
 // https://extendr.github.io/extendr/extendr_api/#returning-resultt-e-to-r
 // https://github.com/extendr/extendr/blob/master/extendr-api/src/robj/into_robj.rs#L100

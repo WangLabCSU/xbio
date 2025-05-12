@@ -8,6 +8,7 @@ mod algorithm;
 mod input;
 mod permutate_gene;
 mod permutate_sample;
+mod ssgsea;
 
 #[extendr]
 // GSEA gene permutation analysis.
@@ -76,6 +77,16 @@ fn gsea_gene_permutate(
     });
 
     Ok(out)
+}
+
+fn gsea_ssgsea(
+    array: Robj,
+    genesets: Robj,
+    exponent: f64,
+    nperm: usize,
+    threads: usize,
+    seed: usize,
+) {
 }
 
 extendr_module! {

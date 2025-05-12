@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use rand::seq::SliceRandom;
+use rand::prelude::IteratorRandom;
 use rand_chacha::{rand_core::SeedableRng, ChaCha8Rng};
 use rayon::prelude::*;
 
@@ -15,25 +15,18 @@ pub(super) fn gsea_gene(
     seed: usize,
 ) -> GSEAOutput {
     let (_, ids, weights) = gsea_prerank(identifiers, metrics, exponent);
-    let permutations: GSEAPermutateList = genesets
+    let permutations: GSEAPermutate = genesets
         .par_iter()
         .map(|geneset| {
             let hits = gsea_hits(geneset, &ids);
-            if hits.iter().any(|hit| *hit) {
-                let norm_neg = gsea_norm_neg(&hits);
-                let norm_pos = gsea_norm_pos(&weights, &hits);
-                let (running, es_pos, es) =
-                    gsea_running_es(&weights, &hits, norm_pos, norm_neg);
-                let null = permutate_hits(
-                    &weights,
-                    hits,
-                    norm_neg,
-                    nperm,
-                    seed as u64,
-                );
-                GSEAPermutate::new(running, es_pos, es, null)
+            let input = GSEAInput::new(&weights, &hits);
+            if input.hits.len() > 0 {
+                let norm_neg = input.norm_neg(None);
+                let score = input.score(None, None, Some(norm_neg));
+                let null = permutate_hits(&input, norm_neg, nperm, seed as u64);
+                Some(GSEARunning { score, null })
             } else {
-                GSEAPermutate::empty()
+                None
             }
         })
         .collect();
@@ -41,22 +34,20 @@ pub(super) fn gsea_gene(
 }
 
 fn permutate_hits(
-    weights: &[f64],
-    hits: Vec<bool>,
-    // direction: bool,
+    gsea_input: &GSEAInput,
     norm_neg: f64, // won't be changed when shuffling hits
     nperm: usize,
     seed: u64,
 ) -> Vec<f64> {
+    let range = 0 .. gsea_input.weights.len();
+    let nhits = gsea_input.hits.len();
     (0 .. nperm)
         .into_par_iter()
         .map(|i| {
             let mut rng = ChaCha8Rng::seed_from_u64(seed);
             rng.set_stream(i as u64);
-            let mut shuffled = hits.clone();
-            shuffled.shuffle(&mut rng);
-            let norm_pos = gsea_norm_pos(weights, &shuffled);
-            gsea_es(weights, &shuffled, norm_pos, norm_neg)
+            let sample = range.clone().choose_multiple(&mut rng, nhits);
+            gsea_input.es(Some(&sample), None, Some(norm_neg))
         })
         .collect()
 }
