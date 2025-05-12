@@ -1,7 +1,7 @@
 use core::f64;
 use std::{collections::HashSet, ops::Div};
 
-use extendr_api::{list, List, Robj, FALSE};
+use extendr_api::{list, List, Robj};
 use rayon::prelude::*;
 
 // For each geneset
