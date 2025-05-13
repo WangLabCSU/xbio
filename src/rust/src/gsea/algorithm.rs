@@ -152,7 +152,7 @@ impl GSEARunning {
     }
 
     fn mean_null(null: &[&f64]) -> f64 {
-        null.into_iter().copied().sum::<f64>() / (null.len() as f64)
+        null.iter().copied().sum::<f64>() / (null.len() as f64)
     }
 
     fn test(&self, pos_null: Vec<&f64>, neg_null: Vec<&f64>) -> f64 {
@@ -178,6 +178,7 @@ impl GSEARunning {
     }
 
     // Get nes and pvalue
+    #[allow(unused)]
     pub fn normalize(&self) -> f64 {
         let reference;
         if self.score.es.ge(&0.0) {
@@ -405,7 +406,7 @@ impl GSEAPermutate {
             .par_iter()
             .zip(nes_list)
             .map(|(x, nes)| -> f64 {
-                if let Some(_) = x {
+                x.as_ref().map_or(f64::NAN, |_| {
                     let reference_props: Vec<f64>; // count.col
                     let obs_prop: f64; // obs.count.col
                     if *nes >= 0.0 {
@@ -465,10 +466,66 @@ impl GSEAPermutate {
                         .div(reference_props.len() as f64)
                         .div(obs_prop)
                         .min(1.0f64)
-                } else {
-                    f64::NAN
-                }
+                })
             })
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod test_gsea_input {
+    use super::*;
+
+    fn approx_eq(a: f64, b: f64, tol: f64) -> bool {
+        (a - b).abs() < tol
+    }
+
+    #[test]
+    fn test_norm_pos_and_neg() {
+        let weights = vec![1.0, 2.0, 3.0, 4.0];
+        let hits = vec![1, 3];
+        let gsea = GSEAInput::new(&weights, &hits);
+
+        let norm_pos = gsea.norm_pos(None);
+        let norm_neg = gsea.norm_neg(None);
+
+        assert!(approx_eq(norm_pos, 1.0 / (2.0 + 4.0), 1e-10));
+        assert!(approx_eq(norm_neg, 1.0 / 2.0, 1e-10));
+    }
+
+    #[test]
+    fn test_score() {
+        let weights = vec![0.1, 0.2, 0.3, 0.4];
+        let hits = vec![1, 3];
+        let gsea = GSEAInput::new(&weights, &hits);
+
+        let result = gsea.score(None, None, None);
+        assert_eq!(result.running.len(), weights.len());
+        assert!(result.es_pos < weights.len());
+        assert!(result.es.abs() > 0.0);
+    }
+
+    #[test]
+    fn test_es_consistency_with_score() {
+        let weights = vec![0.1, 0.2, 0.3, 0.4];
+        let hits = vec![1, 3];
+        let gsea = GSEAInput::new(&weights, &hits);
+
+        let es_score = gsea.score(None, None, None).es;
+        let es_fast = gsea.es(None, None, None);
+        assert!(approx_eq(es_score, es_fast, 1e-10));
+    }
+
+    #[test]
+    fn test_switch_hits_override() {
+        let weights = vec![1.0, 1.0, 1.0];
+        let default_hits = vec![0];
+        let override_hits = vec![1];
+        let gsea = GSEAInput::new(&weights, &default_hits);
+
+        let h1 = gsea.switch_hits(None);
+        let h2 = gsea.switch_hits(Some(&override_hits));
+        assert_eq!(h1, default_hits);
+        assert_eq!(h2, override_hits);
     }
 }

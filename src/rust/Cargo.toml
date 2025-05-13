@@ -14,3 +14,6 @@ extendr-api = { version = "0.8.0", features = [ "result_list" ] }
 rand = {version = "*"}
 rand_chacha = {version = "*"}
 rayon = "1.10"
+
+[lints.clippy]
+needless_late_init = "allow"

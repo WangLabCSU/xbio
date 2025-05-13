@@ -79,15 +79,15 @@ fn gsea_gene_permutate(
     Ok(out)
 }
 
-fn gsea_ssgsea(
-    array: Robj,
-    genesets: Robj,
-    exponent: f64,
-    nperm: usize,
-    threads: usize,
-    seed: usize,
-) {
-}
+// fn gsea_ssgsea(
+//     array: Robj,
+//     genesets: Robj,
+//     exponent: f64,
+//     nperm: usize,
+//     threads: usize,
+//     seed: usize,
+// ) {
+// }
 
 extendr_module! {
     mod gsea;
