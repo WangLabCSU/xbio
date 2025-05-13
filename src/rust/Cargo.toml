@@ -17,3 +17,6 @@ rayon = "1.10"
 
 [lints.clippy]
 needless_late_init = "allow"
+
+[features]
+bench = [] # Used for bench

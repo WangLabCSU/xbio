@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "bench", feature(test))]
+
 use extendr_api::{self, prelude::*};
 
 mod gsea;

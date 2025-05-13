@@ -529,3 +529,29 @@ mod test_gsea_input {
         assert_eq!(h2, override_hits);
     }
 }
+
+#[cfg(all(feature = "bench", test))]
+mod bench_gsea_input {
+    extern crate test;
+    use test::Bencher;
+
+    use super::*;
+
+    #[bench]
+    fn bench_score(b: &mut Bencher) {
+        let weights: Vec<f64> =
+            (0 .. 1000).map(|i| (i as f64 + 1.0) / 1000.0).collect();
+        let hits: Vec<usize> = (0 .. 1000).step_by(10).collect();
+        let gsea = GSEAInput::new(&weights, &hits);
+        b.iter(|| gsea.score(None, None, None));
+    }
+
+    #[bench]
+    fn bench_es(b: &mut Bencher) {
+        let weights: Vec<f64> =
+            (0 .. 1000).map(|i| (i as f64 + 1.0) / 1000.0).collect();
+        let hits: Vec<usize> = (0 .. 1000).step_by(10).collect();
+        let gsea = GSEAInput::new(&weights, &hits);
+        b.iter(|| gsea.es(None, None, None));
+    }
+}
