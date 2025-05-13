@@ -51,10 +51,10 @@ geneset.character <- function(geneset, id = NULL, term = NULL,
 }
 
 #' @export
-geneset.GeneSet <- function(x, ...) {
+geneset.GeneSet <- function(geneset, ...) {
     rlang::check_dots_empty()
-    slots <- methods::slotNames(x)
-    attrs <- lapply(slots, function(nm) methods::slot(x, nm))
+    slots <- methods::slotNames(geneset)
+    attrs <- lapply(slots, function(nm) methods::slot(geneset, nm))
     names(attrs) <- slots
     rlang::inject(geneset(
         attrs$setName, attrs$geneIds,
