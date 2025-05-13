@@ -36,19 +36,19 @@ keggdb <- function(database, organism = NULL, strategy = NULL, save = NULL,
                 "{.field organism} database"
             ))
         }
-        description <- "{.field organism} database in KEGG"
+        description <- "{.field organism} database of KEGG"
         odir <- dbdir("KEGG")
         ofile <- "organism"
     } else {
         organism <- check_organism(organism)
         if (identical(database, "genesets")) {
             description <- sprintf(
-                "{.field %s} for {.field %s} organism in KEGG",
+                "{.field %s} for {.field %s} organism of KEGG",
                 database, organism
             )
         } else {
             description <- sprintf(
-                "{.field %s} database for {.field %s} organism in KEGG",
+                "{.field %s} database for {.field %s} organism of KEGG",
                 database, organism
             )
         }
