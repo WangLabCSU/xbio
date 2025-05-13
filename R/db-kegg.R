@@ -144,6 +144,7 @@ keggdb_get0 <- function(query, option = NULL) {
 #' @export
 kegg_genesets <- function(link = NULL, database = NULL, strategy = NULL,
                           save = NULL, verbose = TRUE) {
+    check_bioc_installed("KEGGREST", "to download from KEGG")
     assert_string(link, allow_empty = FALSE, allow_null = TRUE)
     link <- link %||% "hsa"
     if (is.null(database)) {
