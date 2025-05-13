@@ -530,6 +530,7 @@ mod test_gsea_input {
     }
 }
 
+// Need nightly channel, always add `+nightly` when running `cargo +nightly bench`
 #[cfg(all(feature = "bench", test))]
 mod bench_gsea_input {
     extern crate test;
