@@ -127,72 +127,90 @@ keggdb_get0 <- function(query, option = NULL) {
 #' Retrieves gene sets or pathways from the KEGG database for a given organism.
 #'
 #' @param link A KEGG organism code (e.g., `"hsa"` for human). A full list is
-#' available via `keggdb("organism")$organism`. This will link pathways using
+#' available via `keggdb("organism")$organism`. This will link database using
 #' gene symbols for the specified organism. Alternatively, a KEGG database name
-#' can be provided to link pathway associations based on database entry IDs.
+#' can be provided to link pathway/disease associations based on database entry
+#' IDs.
 #'
-#' **Note**: the following databases can be linked to pathways:
+#' the following database name can be linked to **pathway** database:
 #' `r oxford_and(setdiff(KEGGREST::listDatabases(), KEGG_NO_PATHWAY))`.
+#'
+#' the following database name can be linked to **disease** database:
+#' `r oxford_and(setdiff(KEGGREST::listDatabases(), KEGG_NO_DISEASE))`.
+#'
+#' @param database genesets database, a string of `"pathway"` or `"disease"`.
 #' @inheritParams keggdb
 #' @return A data frame
 #' @export
-kegg_pathway <- function(link = "hsa", strategy = NULL,
-                         save = NULL, verbose = TRUE) {
+kegg_genesets <- function(link = NULL, database = NULL, strategy = NULL,
+                          save = NULL, verbose = TRUE) {
     assert_string(link, allow_empty = FALSE, allow_null = TRUE)
     link <- link %||% "hsa"
-    if (any(link == KEGG_NO_PATHWAY)) {
+    if (is.null(database)) {
+        database <- "pathway"
+    } else {
+        database <- rlang::arg_match0(database, c("disease", "pathway"))
+    }
+    if ((identical(database, "pathway") && any(link == KEGG_NO_PATHWAY)) ||
+        (identical(database, "disease") && any(link == KEGG_NO_DISEASE))) {
         cli::cli_abort(sprintf(
-            "Cannot link {.field %s} database with KEGG {.field pathway}",
-            link
+            "Cannot link {.field %s} with KEGG {.field %s} database",
+            link, database
         ))
     } else if (any(link == KEGGREST::listDatabases())) {
-        database <- link
         organism <- NULL
-        description <- sprintf("{.field %s}", database)
-        ofile <- sprintf("%s_pathway", database)
+        description <- sprintf("{.field %s}", link)
     } else {
         available_organisms <- keggdb("organism", verbose = FALSE)
         if (any(tcodes <- link == .subset2(available_organisms, 1L))) {
             link <- .subset2(available_organisms, 2L)[which(tcodes)]
         } else if (!any(link == .subset2(available_organisms, 2L))) {
-            cli::cli_abort("Cannot find {.field {link}} pathway database")
+            cli::cli_abort(sprintf(
+                "Cannot find {.field %s} %s database",
+                link, database
+            ))
         }
-        database <- NULL
         organism <- link
+        if (identical(database, "disease") && !identical(organism, "hsa")) {
+            cli::cli_abort(paste(
+                "Only {.val hsa} {.arg organism} can be used for",
+                "{.field disease} database"
+            ))
+        }
         description <- sprintf("{.field %s} organism", organism)
-        ofile <- sprintf("%s_pathway", organism)
     }
+    ofile <- sprintf("%s_%s", link, database)
     odir <- file_path(dbdir("KEGG"), "genesets")
     db(
-        kegg_pathway_download,
-        database = database, organism = organism,
+        kegg_genesets_download,
+        database = database, organism = organism, link = link,
         strategy = strategy, output = save,
         odir = odir, ofile = ofile,
-        description = sprintf("KEGG {.field pathway} for %s", description),
+        description = sprintf("KEGG {.field %s} for %s", database, description),
         verbose = verbose
     )
 }
 
-kegg_pathway_download <- function(database, organism) {
-    if (is.null(database)) {
-        pathway2features <- KEGGREST::keggLink(organism, "pathway")
-        terms <- KEGGREST::keggList("pathway", organism)
-    } else {
-        pathway2features <- KEGGREST::keggLink(database, "pathway")
-        terms <- KEGGREST::keggList("pathway")
-        if (!any(database == c("rclass", "disease"))) {
-            pathway2features <- vec_slice(
-                pathway2features,
-                grepl("^path:map", names(pathway2features))
+kegg_genesets_download <- function(database, organism, link) {
+    ids2features <- KEGGREST::keggLink(link, database)
+    if (identical(database, "disease")) {
+        terms <- KEGGREST::keggList(database)
+    } else if (is.null(organism)) { # for pathway database
+        terms <- KEGGREST::keggList(database)
+        if (any(link == c("ko", "reaction", "enzyme"))) {
+            ids2features <- vec_slice(
+                ids2features, grepl("^path:map", names(ids2features))
             )
         }
+    } else {
+        terms <- KEGGREST::keggList(database, organism)
     }
-    pathways <- sub("^[^:]+:", "", names(pathway2features))
-    features <- sub("^[^:]+:", "", pathway2features)
+    ids <- sub("^[^:]+:", "", names(ids2features))
+    features <- sub("^[^:]+:", "", ids2features)
     new_data_frame(
         list(
-            ids = pathways,
-            terms = terms[pathways],
+            ids = ids,
+            terms = terms[ids],
             features = features
         ),
         class = sprintf("%s_kegg_genesets", pkg_nm())
@@ -204,6 +222,12 @@ methods::setOldClass("xbio_kegg_genesets")
 S3_kegg_genesets <- new_S3_class("xbio_kegg_genesets")
 
 KEGG_NO_PATHWAY <- c(
-    "pathway", "brite", "genome", "vg", "ag",
+    "pathway", "disease", "brite", "genome", "vg", "ag",
+    "dgroup", "environ", "genes", "ligand", "kegg"
+)
+
+KEGG_NO_DISEASE <- c(
+    "pathway", "disease", "genome", "module", "vg", "ag",
+    "compound", "glycan", "reaction", "rclass", "enzyme",
     "dgroup", "environ", "genes", "ligand", "kegg"
 )

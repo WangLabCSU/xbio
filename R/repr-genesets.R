@@ -4,8 +4,8 @@
 #' - `character`: A string indicating the source of gene sets.
 #'   * Acceptable values include `r oxford_or(c("go/GO", "kegg/KEGG"))`, which
 #'     download gene sets from the GO or KEGG databases. In this case,
-#'     additional arguments such as `link`/`database`, `strategy`, and `save`
-#'     can be used. See [`kegg_pathway()`] and [`godb()`] for details.
+#'     additional arguments such as (`link`, `database`), `strategy`, and `save`
+#'     can be used. See [`kegg_genesets()`] and [`godb()`] for details.
 #'   * You may also specify the name of an
 #'     [`OrgDb`](https://bioconductor.org/packages/release/BiocViews.html#___OrgDb)
 #'     package, which will call the `OrgDb` method.
@@ -217,11 +217,12 @@ methods::setMethod(
     }
 )
 
-genesets_kegg <- function(link = NULL, strategy = NULL, save = NULL,
-                          verbose = TRUE, ...) {
+genesets_kegg <- function(link = NULL, database = NULL, strategy = NULL,
+                          save = NULL, verbose = TRUE, ...) {
     rlang::check_dots_empty()
-    kegg_pathway(
+    kegg_genesets(
         link = link,
+        database = database,
         strategy = strategy,
         save = save,
         verbose = verbose

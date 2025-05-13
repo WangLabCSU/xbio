@@ -28,8 +28,8 @@ genesets(gs, ..., `_arg` = NULL)
 \itemize{
 \item Acceptable values include \code{"go/GO"} or \code{"kegg/KEGG"}, which
 download gene sets from the GO or KEGG databases. In this case,
-additional arguments such as \code{link}/\code{database}, \code{strategy}, and \code{save}
-can be used. See \code{\link[=kegg_pathway]{kegg_pathway()}} and \code{\link[=godb]{godb()}} for details.
+additional arguments such as (\code{link}, \code{database}), \code{strategy}, and \code{save}
+can be used. See \code{\link[=kegg_genesets]{kegg_genesets()}} and \code{\link[=godb]{godb()}} for details.
 \item You may also specify the name of an
 \href{https://bioconductor.org/packages/release/BiocViews.html#___OrgDb}{\code{OrgDb}}
 package, which will call the \code{OrgDb} method.
