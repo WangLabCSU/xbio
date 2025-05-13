@@ -155,7 +155,7 @@ kegg_pathway <- function(database = "hsa", strategy = NULL,
         if (any(tcodes <- database == .subset2(available_organisms, 1L))) {
             database <- .subset2(available_organisms, 2L)[which(tcodes)]
         } else if (!any(database == .subset2(available_organisms, 2L))) {
-            cli::cli_abort("Cannot found {.field {database}} pathway database")
+            cli::cli_abort("Cannot find {.field {database}} pathway database")
         }
         organism <- database
         description <- sprintf("{.field %s} organism", organism)
