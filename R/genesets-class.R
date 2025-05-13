@@ -241,7 +241,7 @@ vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
                 ids = .subset2(x, "ids"),
                 terms = .subset2(x, "terms"),
                 descriptions = rep_len(NA_character_, vec_size(x)),
-                genesets = .subset2(x, "genes")
+                genesets = .subset2(x, "features")
             )
         ),
         to, ...

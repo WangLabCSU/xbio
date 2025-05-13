@@ -11,12 +11,13 @@ db <- function(download, ..., strategy, output, odir, ofile, description,
         )
     }
     if (is.null(output)) {
-        output <- file_path(odir, ofile, ext = "rds")
         if (is.null(strategy) || identical(strategy, "save")) {
             dir_create(odir, recursive = TRUE)
         }
+        output <- file_path(odir, ofile, ext = "rds")
     } else {
         # User provided file shouldn't contain file extention
+        # User should ensure the output directory exists
         output <- paste0(output, ".rds")
     }
     if (is.null(strategy) || identical(strategy, "read")) {
