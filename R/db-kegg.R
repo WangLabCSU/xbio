@@ -126,40 +126,40 @@ keggdb_get0 <- function(query, option = NULL) {
 #'
 #' Retrieves gene sets or pathways from the KEGG database for a given organism.
 #'
-#' @param database A KEGG organism code (e.g., `"hsa"` for human). A full list
-#' is available via `keggdb("organism")$organism`. This will retrieve pathways
-#' using gene symbols for the specified organism. Alternatively, a KEGG database
-#' name can be provided to retrieve pathway associations based on database entry
-#' IDs.
+#' @param link A KEGG organism code (e.g., `"hsa"` for human). A full list is
+#' available via `keggdb("organism")$organism`. This will link pathways using
+#' gene symbols for the specified organism. Alternatively, a KEGG database name
+#' can be provided to link pathway associations based on database entry IDs.
 #'
 #' **Note**: the following databases can be linked to pathways:
 #' `r oxford_and(setdiff(KEGGREST::listDatabases(), KEGG_NO_PATHWAY))`.
 #' @inheritParams keggdb
 #' @return A data frame
 #' @export
-kegg_pathway <- function(database = "hsa", strategy = NULL,
+kegg_pathway <- function(link = "hsa", strategy = NULL,
                          save = NULL, verbose = TRUE) {
-    assert_string(database, allow_empty = FALSE, allow_null = TRUE)
-    database <- database %||% "hsa"
-    if (any(database == KEGG_NO_PATHWAY)) {
+    assert_string(link, allow_empty = FALSE, allow_null = TRUE)
+    link <- link %||% "hsa"
+    if (any(link == KEGG_NO_PATHWAY)) {
         cli::cli_abort(sprintf(
             "Cannot link {.field %s} database with KEGG {.field pathway}",
-            database
+            link
         ))
-    } else if (any(database == KEGGREST::listDatabases())) {
+    } else if (any(link == KEGGREST::listDatabases())) {
+        database <- link
+        organism <- NULL
         description <- sprintf("{.field %s}", database)
         ofile <- sprintf("%s_pathway", database)
-        organism <- NULL
     } else {
         available_organisms <- keggdb("organism", verbose = FALSE)
-        if (any(tcodes <- database == .subset2(available_organisms, 1L))) {
-            database <- .subset2(available_organisms, 2L)[which(tcodes)]
-        } else if (!any(database == .subset2(available_organisms, 2L))) {
-            cli::cli_abort("Cannot find {.field {database}} pathway database")
+        if (any(tcodes <- link == .subset2(available_organisms, 1L))) {
+            link <- .subset2(available_organisms, 2L)[which(tcodes)]
+        } else if (!any(link == .subset2(available_organisms, 2L))) {
+            cli::cli_abort("Cannot find {.field {link}} pathway database")
         }
-        organism <- database
-        description <- sprintf("{.field %s} organism", organism)
         database <- NULL
+        organism <- link
+        description <- sprintf("{.field %s} organism", organism)
         ofile <- sprintf("%s_pathway", organism)
     }
     odir <- file_path(dbdir("KEGG"), "genesets")

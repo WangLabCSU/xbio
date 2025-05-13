@@ -4,14 +4,13 @@
 \alias{kegg_pathway}
 \title{Retrieve KEGG Gene Sets or Pathways}
 \usage{
-kegg_pathway(database = "hsa", strategy = NULL, save = NULL, verbose = TRUE)
+kegg_pathway(link = "hsa", strategy = NULL, save = NULL, verbose = TRUE)
 }
 \arguments{
-\item{database}{A KEGG organism code (e.g., \code{"hsa"} for human). A full list
-is available via \code{keggdb("organism")$organism}. This will retrieve pathways
-using gene symbols for the specified organism. Alternatively, a KEGG database
-name can be provided to retrieve pathway associations based on database entry
-IDs.
+\item{link}{A KEGG organism code (e.g., \code{"hsa"} for human). A full list is
+available via \code{keggdb("organism")$organism}. This will link pathways using
+gene symbols for the specified organism. Alternatively, a KEGG database name
+can be provided to link pathway associations based on database entry IDs.
 
 \strong{Note}: the following databases can be linked to pathways:
 \code{"module"}, \code{"ko"}, \code{"compound"}, \code{"glycan"}, \code{"reaction"}, \code{"rclass"}, \code{"enzyme"}, \code{"disease"}, and \code{"drug"}.}
