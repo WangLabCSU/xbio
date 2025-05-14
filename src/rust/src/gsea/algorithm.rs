@@ -541,8 +541,8 @@ mod bench_gsea_input {
     #[bench]
     fn bench_score(b: &mut Bencher) {
         let weights: Vec<f64> =
-            (0 .. 1000).map(|i| (i as f64 + 1.0) / 1000.0).collect();
-        let hits: Vec<usize> = (0 .. 1000).step_by(10).collect();
+            (0 .. 20000).map(|i| (i as f64 + 1.0) / 20000.0).collect();
+        let hits: Vec<usize> = (0 .. 20000).step_by(100).collect();
         let gsea = GSEAInput::new(&weights, &hits);
         b.iter(|| gsea.score(None, None, None));
     }
@@ -550,8 +550,8 @@ mod bench_gsea_input {
     #[bench]
     fn bench_es(b: &mut Bencher) {
         let weights: Vec<f64> =
-            (0 .. 1000).map(|i| (i as f64 + 1.0) / 1000.0).collect();
-        let hits: Vec<usize> = (0 .. 1000).step_by(10).collect();
+            (0 .. 20000).map(|i| (i as f64 + 1.0) / 20000.0).collect();
+        let hits: Vec<usize> = (0 .. 20000).step_by(100).collect();
         let gsea = GSEAInput::new(&weights, &hits);
         b.iter(|| gsea.es(None, None, None));
     }
