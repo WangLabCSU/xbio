@@ -31,8 +31,12 @@ Imports:
     vctrs (>= 0.5.0)
 Suggests:
     AnnotationHub,
+    biomaRt,
+    fgsea,
     KEGGREST,
     testthat (>= 3.0.0)
+Enhances: 
+    GSEABase
 URL: https://github.com/Yunuuuu/xbio
 BugReports: https://github.com/Yunuuuu/xbio/issues
 Collate: 
