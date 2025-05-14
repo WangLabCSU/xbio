@@ -2,21 +2,29 @@
 % Please edit documentation in R/repr-metrics.R
 \name{repr_metrics}
 \alias{repr_metrics}
-\alias{repr_metrics,numeric-method}
-\alias{repr_metrics,data.frame-method}
-\alias{repr_metrics,character-method}
+\alias{repr_metrics.numeric}
+\alias{repr_metrics.data.frame}
+\alias{repr_metrics.character}
 \title{Create ranking metrics representation}
 \usage{
 repr_metrics(metrics, ..., `_arg` = NULL)
 
-\S4method{repr_metrics}{numeric}(metrics, ..., `_arg` = NULL)
+\method{repr_metrics}{numeric}(metrics, ..., `_arg` = NULL)
 
-\S4method{repr_metrics}{data.frame}(metrics, ..., `_arg` = NULL)
+\method{repr_metrics}{data.frame}(metrics, ..., `_arg` = NULL)
 
-\S4method{repr_metrics}{character}(metrics, ..., `_arg` = NULL)
+\method{repr_metrics}{character}(metrics, ..., `_arg` = NULL)
+}
+\arguments{
+\item{metrics}{A named numeric ranked metrics.}
+
+\item{...}{Additional arguments passed to the method.}
+
+\item{_arg}{A single string of the argument name for \code{gs}, used by the
+internal to provide better message.}
 }
 \value{
-A \code{xbio_metrics} object, which is a named numeric vector.
+A named numeric vector with class \code{xbio_metrics}.
 }
 \description{
 Create ranking metrics representation
