@@ -59,7 +59,7 @@ methods::setMethod("bridge", "ANY", function(source, target, method) {
     )
 })
 
-# repr_source
+#' @keywords repr_source
 methods::setGeneric("repr_source",
     signature = c("method", "source"),
     function(method, source) standardGeneric("repr_source")
@@ -79,7 +79,7 @@ methods::setMethod(
     }
 )
 
-# repr_target
+#' @keywords repr_target
 repr_target <- new_generic(
     "repr_target", "method",
     function(method, target) S7_dispatch()

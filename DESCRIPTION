@@ -54,6 +54,7 @@ Collate:
     'import-standalone-pkg.R'
     'import-standalone-tibble.R'
     'repr-genesets.R'
+    'repr-matrix.R'
     'repr-metrics.R'
     'repr-threthold.R'
     'utils-file.R'
