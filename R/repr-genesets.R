@@ -47,17 +47,18 @@ genesets <- function(gs, ..., `_arg` = NULL) {
     UseMethod("genesets")
 }
 
-#' @export
+#' @exportS3Method genesets default
 genesets.default <- function(gs, ..., `_arg` = NULL) {
     cli::cli_abort("Cannot extract genesets from {.obj_type_friendly {gs}}")
 }
 
-#' @export
+#' @exportS3Method genesets xbio_genesets
 genesets.xbio_genesets <- function(gs, ..., `_arg` = NULL) gs
 
 #' @param select A character or integer vector select the columns to be used for
 #' a data.frame input.
-#' @export
+#' @exportS3Method genesets data.frame
+#' @method genesets data.frame
 #' @rdname repr_genesets
 genesets.data.frame <- function(gs, ..., select = NULL, `_arg` = NULL) {
     rlang::check_dots_empty()
@@ -82,7 +83,8 @@ genesets.data.frame <- function(gs, ..., select = NULL, `_arg` = NULL) {
 #' @param terms A character vector of gene set terms for list input.
 #' @param descriptions A character vector of gene set descriptions for a list
 #' input.
-#' @export
+#' @exportS3Method genesets list
+#' @method genesets list
 #' @rdname repr_genesets
 genesets.list <- function(gs, ..., ids = NULL, terms = NULL,
                           descriptions = NULL, `_arg` = NULL) {
@@ -117,7 +119,8 @@ genesets.list <- function(gs, ..., ids = NULL, terms = NULL,
     vec_cast(gs, new_genesets())
 }
 
-#' @export
+#' @exportS3Method genesets character
+#' @method genesets character
 #' @rdname repr_genesets
 genesets.character <- function(gs, ..., verbose = TRUE, `_arg` = NULL) {
     if (!.rlang_check_string(gs, allow_empty = FALSE)) {
@@ -179,7 +182,8 @@ genesets.character <- function(gs, ..., verbose = TRUE, `_arg` = NULL) {
 #' use.
 #' @param ontology A character vector specifying the GO ontology to use. Must be
 #' one or more of `r oxford_and(GO_ONTOLOGY)`.
-#' @export
+#' @exportS3Method genesets OrgDb
+#' @method genesets OrgDb
 #' @rdname repr_genesets
 genesets.OrgDb <- function(gs, ..., keytype = "SYMBOL", ontology = NULL,
                            `_arg` = NULL) {
@@ -203,7 +207,7 @@ genesets.OrgDb <- function(gs, ..., keytype = "SYMBOL", ontology = NULL,
     genesets(out, select = c("GOALL", "ONTOLOGYALL", keytype))
 }
 
-#' @export
+#' @exportS3Method genesets xbio_kegg_genesets
 genesets.xbio_kegg_genesets <- function(gs, ..., `_arg` = NULL) {
     vec_cast(gs, new_genesets(), x_arg = `_arg`)
 }

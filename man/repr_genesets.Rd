@@ -13,20 +13,13 @@ repr_genesets(gs, ..., min_size = 5, max_size = 500)
 
 genesets(gs, ..., `_arg` = NULL)
 
-genesets.data.frame(gs, ..., select = NULL, `_arg` = NULL)
+\method{genesets}{data.frame}(gs, ..., select = NULL, `_arg` = NULL)
 
-genesets.list(
-  gs,
-  ...,
-  ids = NULL,
-  terms = NULL,
-  descriptions = NULL,
-  `_arg` = NULL
-)
+\method{genesets}{list}(gs, ..., ids = NULL, terms = NULL, descriptions = NULL, `_arg` = NULL)
 
-genesets.character(gs, ..., verbose = TRUE, `_arg` = NULL)
+\method{genesets}{character}(gs, ..., verbose = TRUE, `_arg` = NULL)
 
-genesets.OrgDb(gs, ..., keytype = "SYMBOL", ontology = NULL, `_arg` = NULL)
+\method{genesets}{OrgDb}(gs, ..., keytype = "SYMBOL", ontology = NULL, `_arg` = NULL)
 }
 \arguments{
 \item{gs}{Specify the gene sets to use. Accepted formats:
