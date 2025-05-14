@@ -2,9 +2,20 @@
 % Please edit documentation in R/repr-matrix.R
 \name{repr_matrix}
 \alias{repr_matrix}
+\alias{repr_matrix.matrix}
 \title{Extract matrix}
 \usage{
 repr_matrix(matrix, ..., `_arg` = NULL)
+
+\method{repr_matrix}{matrix}(matrix, ..., `_arg` = NULL)
+}
+\arguments{
+\item{matrix}{Input object used to extract the matrix.}
+
+\item{...}{Additional arguments passed to the method.}
+
+\item{_arg}{A single string of the argument name for \code{gs}, used by the
+internal to provide better message.}
 }
 \value{
 A \code{xbio_matrix} object, which is a named numeric vector.
