@@ -19,8 +19,8 @@ pub(super) fn gsea_gene(
         .par_iter()
         .map(|geneset| {
             let hits = gsea_hits(geneset, &ids);
-            let input = GSEAInput::new(&weights, &hits);
-            if !input.hits.is_empty() {
+            if !hits.is_empty() {
+                let input = GSEAInput::new(&weights, &hits);
                 let norm_neg = input.norm_neg(None);
                 let score = input.score(None, None, Some(norm_neg));
                 let null = permutate_hits(&input, norm_neg, nperm, seed);
