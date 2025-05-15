@@ -30,6 +30,7 @@
 #' @export
 repr_genesets <- function(gs, ..., min_size = 5, max_size = 500) {
     out <- genesets(gs, ...)
+    out <- gs_tidy(out)
     gs_filter(out, min_size = min_size, max_size = max_size)
 }
 

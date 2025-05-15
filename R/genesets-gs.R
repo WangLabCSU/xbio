@@ -1,69 +1,119 @@
-gs_ids <- function(gs) {
-    assert_s3_class(gs, "xbio_genesets")
-    vapply(
-        gs, function(geneset) {
-            attr(geneset, "id") %||% NA_character_
-        },
-        character(1L),
-        USE.NAMES = FALSE
-    )
+#' Extract attributes from a geneset or genesets object
+#'
+#' These functions extract specific attributes from [geneset()] or
+#' [genesets()] objects:
+#'  - IDs (`gs_ids()`)
+#'  - terms (`gs_terms()`)
+#'  - descriptions (`gs_descs()`).
+#'
+#' @param gs A [geneset()] or [genesets()] object.
+#'
+#' @return A character vector containing the extracted attributes.
+#' If `gs` is a `geneset` object, a character scalar is returned.
+#'
+#' @export
+gs_ids <- function(gs) UseMethod("gs_ids")
+
+#' @export
+gs_ids.xbio_geneset <- function(gs) {
+    attr(gs, "id", exact = TRUE) %||% NA_character_
 }
 
-gs_terms <- function(gs) {
-    assert_s3_class(gs, "xbio_genesets")
-    vapply(
-        gs, function(geneset) {
-            attr(geneset, "term") %||% NA_character_
-        },
-        character(1L),
-        USE.NAMES = FALSE
-    )
+#' @export
+gs_ids.xbio_genesets <- function(gs) {
+    vapply(gs, gs_ids.xbio_geneset, character(1L), USE.NAMES = FALSE)
 }
 
-gs_descs <- function(gs) {
-    assert_s3_class(gs, "xbio_genesets")
-    vapply(
-        gs, function(geneset) {
-            attr(geneset, "description") %||% NA_character_
-        },
-        character(1L),
-        USE.NAMES = FALSE
-    )
+#' @export
+#' @rdname gs_ids
+gs_terms <- function(gs) UseMethod("gs_terms")
+
+#' @export
+gs_terms.xbio_geneset <- function(gs) {
+    attr(gs, "term", exact = TRUE) %||% NA_character_
 }
 
+#' @export
+gs_terms.xbio_genesets <- function(gs) {
+    vapply(gs, gs_terms.xbio_geneset, character(1L), USE.NAMES = FALSE)
+}
+
+#' @export
+#' @rdname gs_ids
+gs_descs <- function(gs) UseMethod("gs_descs")
+
+#' @export
+gs_descs.xbio_geneset <- function(gs) {
+    attr(gs, "description", exact = TRUE) %||% NA_character_
+}
+
+#' @export
+gs_descs.xbio_genesets <- function(gs) {
+    vapply(gs, gs_descs.xbio_geneset, character(1L), USE.NAMES = FALSE)
+}
+
+#######################################################
+#' Map a geneset or genesets object to a different keytype
+#'
+#' This function maps the gene identifiers in a [`geneset()`] or [`genesets()`]
+#' object from one keytype to another, using either an
+#' [`AnnotationDb`][AnnotationDbi::mapIds] or a [`Mart`][biomaRt::useMart]
+#' object.
+#'
+#' @inheritParams gs_ids
+#' @param annodb An `AnnotationDb` object or a character string naming the
+#' annotation package.
+#' @param mart A [`Mart`][biomaRt::useMart] object (for use with
+#' `gs_biomart()`).
+#' @param key_source A string indicating the keytype used in `gs`.
+#' @param key_target A string indicating the desired target keytype.
+#' @param ... Additional arguments passed to
+#' [`mapIds()`][AnnotationDbi::mapIds] or [`getBM()`][biomaRt::getBM].
+#'
+#' @return An object of the same class as `gs`, with mapped gene identifiers.
+#' @export
 gs_map <- function(gs, annodb, key_source, key_target, ...) {
-    assert_s3_class(gs, "xbio_genesets")
     assert_string(key_source, allow_empty = FALSE)
     assert_string(key_target, allow_empty = FALSE)
-    if (vec_size(gs) == 0L) return(gs) # styler: off
-
     # Infer the annodb ----------------------------
     if (is.character(annodb)) {
         check_bioc_installed(annodb)
         annodb <- getExportedValue(annodb, annodb)
     }
-
-    # mapping the the genes in genesets into keytype
-    gs_lapply(gs, function(geneset) {
-        if (length(geneset) == 0L) return(geneset) # styler: off
-        out <- AnnotationDbi::mapIds(
-            x = annodb,
-            keys = geneset,
-            column = key_target,
-            keytype = key_source,
-            ...
-        )
-        out <- as.character(out) # out can be a list
-        out[is.na(out) | out == ""] <- NA_character_
-        out
-    })
+    gs_map <- function(gs, annodb, key_source, key_target, ...) {
+        UseMethod("gs_map")
+    }
+    gs_map(gs, annodb, key_source, key_target, ...)
 }
 
+#' @export
+gs_map.xbio_geneset <- function(gs, annodb, key_source, key_target, ...) {
+    if (vec_size(gs) == 0L) return(gs) # styler: off
+    out <- AnnotationDbi::mapIds(
+        x = annodb,
+        keys = gs,
+        column = key_target,
+        keytype = key_source,
+        ...
+    )
+    out <- as.character(out) # out can be a list
+    out[is.na(out) | out == ""] <- NA_character_
+    out
+}
+
+#' @export
+gs_map.xbio_genesets <- function(gs, annodb, ...) {
+    if (vec_size(gs) == 0L) return(gs) # styler: off
+    # mapping the the genes in genesets into keytype
+    gs_lapply(gs, gs_map.xbio_geneset, annodb = annodb, ...)
+}
+
+#' @param mart A [`Mart`][biomaRt::useMart] object.
+#' @export
+#' @rdname gs_map
 gs_biomart <- function(gs, mart, key_source, key_target, ...) {
-    assert_s3_class(gs, "xbio_genesets")
     assert_string(key_source, allow_empty = FALSE)
     assert_string(key_target, allow_empty = FALSE)
-    if (vec_size(gs) == 0L) return(gs) # styler: off
     check_bioc_installed("biomaRt")
     if (missing(mart) || !inherits(mart, "Mart")) {
         cli::cli_abort(c(
@@ -72,39 +122,52 @@ gs_biomart <- function(gs, mart, key_source, key_target, ...) {
             i = "Check {.code ?biomaRt::useMart} for more information."
         ))
     }
+    UseMethod("gs_biomart")
+}
+
+#' @export
+gs_biomart.xbio_geneset <- function(gs, mart, key_source, key_target, ...) {
+    if (vec_size(gs) == 0L) return(gs) # styler: off
+    out <- biomaRt::getBM(
+        mart = mart,
+        values = gs,
+        attributes = key_target,
+        filters = key_source,
+        ...
+    )
+    out <- as.character(.subset2(out, key_target))
+    out[is.na(out) | out == ""] <- NA_character_
+    out
+}
+
+#' @export
+gs_biomart.xbio_genesets <- function(gs, ...) {
+    if (vec_size(gs) == 0L) return(gs) # styler: off
     # mapping the the genes in genesets into keytype
-    gs_lapply(gs, function(geneset) {
-        if (length(geneset) == 0L) return(geneset) # styler: off
-        out <- biomaRt::getBM(
-            mart = mart,
-            values = geneset,
-            attributes = key_target,
-            filters = key_source,
-            ...
-        )
-        out <- as.character(.subset2(out, key_target))
-        out[is.na(out) | out == ""] <- NA_character_
-        out
-    })
+    gs_lapply(gs, gs_biomart.xbio_geneset, ...)
 }
 
-#' @keywords internal
-#' @noRd
-gs_trim <- function(gs) {
-    assert_s3_class(gs, "xbio_genesets")
-    gs <- gs_lapply(gs, function(geneset) {
-        geneset[!is.na(geneset) & geneset != ""]
-    })
-    if (!all(keep <- list_sizes(gs) > 0L)) {
-        cli::cli_warn(paste(
-            "Removing {sum(!keep)} invalid gene set{?s}",
-            "(all are empty string or missing value)"
-        ))
-        gs <- gs[keep]
-    }
-    gs
-}
-
+###########################################################
+#' Filter genesets by size
+#'
+#' This function filters a [`genesets()`] object by removing gene sets that do
+#' not fall within the specified size range.
+#'
+#' @param gs A [`genesets()`] object (of class `"xbio_genesets"`).
+#' @param min_size An integer specifying the minimum number of genes
+#' a gene set must contain to be retained. If `NULL`, no lower bound is applied.
+#' @param max_size An integer specifying the maximum number of genes
+#' a gene set may contain to be retained. If `NULL`, no upper bound is applied.
+#'
+#' @details
+#' Gene sets whose sizes fall outside the interval defined by
+#' `min_size` and `max_size` will be removed. A message is printed
+#' indicating how many sets were removed, if any.
+#'
+#' @return A filtered [`genesets()`] object containing only gene sets
+#' within the specified size range.
+#'
+#' @export
 gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
     assert_s3_class(gs, "xbio_genesets")
     assert_number_whole(min_size, min = 1, allow_null = TRUE)
@@ -133,6 +196,23 @@ gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
         gs <- gs[keep]
     }
     gs
+}
+
+#' @keywords internal
+#' @noRd
+gs_tidy <- function(gs) {
+    out <- lapply(gs, function(geneset) {
+        geneset <- vec_unique(geneset)
+        geneset[!is.na(geneset) & geneset != ""]
+    })
+    if (!all(keep <- list_sizes(out) > 0L)) {
+        cli::cli_warn(paste(
+            "Removing {sum(!keep)} invalid gene set{?s}",
+            "(all are empty string or missing value)"
+        ))
+        out <- out[keep]
+    }
+    vec_restore(out, gs)
 }
 
 gs_lapply <- function(gs, ...) vec_restore(lapply(gs, ...), gs)
