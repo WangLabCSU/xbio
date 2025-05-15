@@ -41,7 +41,8 @@ selected \code{method}.
 \item \strong{Over-Representation Analysis}: \code{\link[=ORA]{ORA()}}
 \item \strong{GSEA gene-permutation algorithm}: \code{\link[=GSEAGene]{GSEAGene()}}, \code{\link[=GSEASimple]{GSEASimple()}},
 \code{\link[=GSEAMultilevel]{GSEAMultilevel()}}, and \code{\link[=GSEABroadGene]{GSEABroadGene()}}.
-\item \strong{GSEA sample-permutation algorithm}: \code{\link[=GSEABroad]{GSEABroad()}} and \code{\link[=GSEASample]{GSEASample()}}.
+\item \strong{GSEA sample-permutation algorithm}: \code{\link[=GSEABroadSample]{GSEABroadSample()}} and
+\code{\link[=GSEASample]{GSEASample()}}.
 \item \strong{Rank-Rank Hypergeometric Overlap test}: \code{\link[=RRHO]{RRHO()}}.
 }}
 }

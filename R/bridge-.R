@@ -31,7 +31,8 @@
 #'  - **Over-Representation Analysis**: [ORA()]
 #'  - **GSEA gene-permutation algorithm**: [`GSEAGene()`], [`GSEASimple()`],
 #'    [`GSEAMultilevel()`], and [`GSEABroadGene()`].
-#'  - **GSEA sample-permutation algorithm**: [`GSEABroad()`] and [GSEASample()].
+#'  - **GSEA sample-permutation algorithm**: [`GSEABroadSample()`] and
+#'    [GSEASample()].
 #'  - **Rank-Rank Hypergeometric Overlap test**: [`RRHO()`].
 #'
 #' @details
