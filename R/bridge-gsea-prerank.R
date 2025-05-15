@@ -152,6 +152,7 @@ method(bridge, GSEASimple) <- function(method, source, target) {
     )
 
     # restore the original ordering
+    out <- as.data.frame(out)
     index <- as.integer(out$pathway)
     out <- out[c("ES", "NES", "pval", "padj", "leadingEdge")]
     names(out) <- c("es", "nes", "pvalue", "fdr", "leading_edge")
@@ -226,6 +227,7 @@ method(bridge, GSEAMultilevel) <- function(method, source, target) {
     )
 
     # restore the original ordering
+    out <- as.data.frame(out)
     index <- as.integer(out$pathway)
     out <- out[c("ES", "NES", "pval", "padj", "leadingEdge")]
     names(out) <- c("es", "nes", "pvalue", "fdr", "leading_edge")
