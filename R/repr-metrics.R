@@ -5,16 +5,15 @@
 #' @return A named numeric vector with class `xbio_metrics`.
 #' @export
 repr_metrics <- function(metrics, ..., `_arg` = NULL) {
-    # `_arg` is not used by user, but used by the internal to provide better
-    # message
-    .repr_metrics(metrics, ..., `_arg` = `_arg` %||% "metrics")
-}
-
-.repr_metrics <- function(metrics, ..., `_arg` = NULL) {
-    if (missing(metrics)) {
-        cli::cli_abort("{.arg {`_arg`}} must be provided")
+    repr_metrics <- function(metrics, ..., `_arg` = NULL) {
+        if (missing(metrics)) {
+            cli::cli_abort("{.arg {`_arg`}} must be provided")
+        }
+        UseMethod("repr_metrics")
     }
-    UseMethod("repr_metrics")
+    # Tricks to do common work in S3 generic
+    # Define the default argument of `_arg`
+    repr_metrics(metrics, ..., `_arg` = `_arg` %||% "metrics")
 }
 
 new_metrics <- function(x) structure(x, class = "xbio_metrics")
@@ -30,19 +29,18 @@ is_valid_metrics <- function(metrics, names) {
     valid
 }
 
-#' @exportS3Method repr_metrics default
+#' @export
 repr_metrics.default <- function(metrics, ..., `_arg` = NULL) {
     cli::cli_abort(
         "Cannot extract ranking metrics from {.obj_type_friendly {metrics}}"
     )
 }
 
-#' @exportS3Method repr_metrics xbio_metrics
+#' @export
 repr_metrics.xbio_metrics <- function(metrics, ..., `_arg` = NULL) metrics
 
 #########################################################
-#' @exportS3Method repr_metrics numeric
-#' @method repr_metrics numeric
+#' @export
 #' @rdname repr_metrics
 repr_metrics.numeric <- function(metrics, ..., `_arg` = NULL) {
     if (is.null(nms <- names(metrics))) {
@@ -51,8 +49,7 @@ repr_metrics.numeric <- function(metrics, ..., `_arg` = NULL) {
     new_metrics(metrics[is_valid_metrics(metrics, nms)])
 }
 
-#' @method repr_metrics data.frame
-#' @exportS3Method repr_metrics data.frame
+#' @export
 #' @rdname repr_metrics
 repr_metrics.data.frame <- function(metrics, ..., `_arg` = NULL) {
     if (ncol(metrics) < 2L) {
@@ -73,8 +70,7 @@ repr_metrics.data.frame <- function(metrics, ..., `_arg` = NULL) {
 }
 
 
-#' @method repr_metrics character
-#' @exportS3Method repr_metrics character
+#' @export
 #' @rdname repr_metrics
 repr_metrics.character <- function(metrics, ..., `_arg` = NULL) {
     if (!rlang::is_string(metrics) || !endsWith(tolower(metrics), ".rnk")) {
