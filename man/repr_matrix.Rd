@@ -43,6 +43,16 @@ repr_matrix(matrix, ..., `_arg` = NULL)
 
 \item{_arg}{A single string of the argument name for \code{gs}, used by the
 internal to provide better message.}
+
+\item{assay}{Integer scalar or string indicating which assay to use.}
+
+\item{dimred}{String or integer scalar specifying the existing dimensionality
+reduction results to use.}
+
+\item{n_dimred}{Integer scalar or vector specifying the dimensions to use if
+dimred is specified.}
+
+\item{layer}{Name of layer to get for \code{Seurat} object.}
 }
 \value{
 A matrix object.

@@ -28,6 +28,12 @@ repr_matrix.matrix <- function(matrix, ..., `_arg` = NULL) matrix
 #' @rdname repr_matrix
 repr_matrix.dgCMatrix <- function(matrix, ..., `_arg` = NULL) matrix
 
+#' @param assay Integer scalar or string indicating which assay to use.
+#' @param dimred String or integer scalar specifying the existing dimensionality
+#' reduction results to use.
+#' @param n_dimred Integer scalar or vector specifying the dimensions to use if
+#' dimred is specified.
+#' @param layer Name of layer to get for `Seurat` object.
 #' @export
 #' @rdname repr_matrix
 repr_matrix.Seurat <- function(matrix, assay = NULL, ...,
