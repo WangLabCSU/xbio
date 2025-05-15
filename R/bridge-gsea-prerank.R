@@ -1,5 +1,18 @@
-#' GSEA prerank algorithm
+#' Gene Set Enrichment Analysis (GSEA) - Preranked Variants
 #'
+#' @description
+#' A family of enrichment methods based on the GSEA preranked algorithm,
+#' evaluating gene set enrichment using a ranked gene list as input. These
+#' methods differ in implementation (e.g., R, Rust, or C++ backends), p-value
+#' estimation techniques (e.g., empirical, adaptive multilevel), and performance
+#' optimizations.
+#'
+#' @param exponent A positive numeric scalar that controls the weighting of the
+#' ranking metric. A value of `1` corresponds to the original GSEA method.
+#'
+#' @param nperm A positive integer specifying the number of permutations to
+#' estimate statistical significance. Higher values improve precision but
+#' increase runtime.
 #' @name GSEAPrerank
 NULL
 
@@ -44,6 +57,8 @@ method(repr_target, list(GSEAPrerank, class_any)) <- function(method, target) {
 #    sampled
 # 3. Memory and runtime become limiting for large datasets.
 #' @describeIn GSEAPrerank Rust-based GSEA gene-permutation algorithm.
+#' @param threads Integer. Number of threads to use for parallel computation.
+#'   Defaults to all available cores.
 #' @export
 GSEAGene <- new_class("GSEAGene", GSEAPrerank,
     properties = list(
@@ -89,6 +104,13 @@ method(bridge, GSEAGene) <- function(method, source, target) {
 # fgsea method -----------------------------------------
 #' @describeIn GSEAPrerank `fgsea` algorithm. See
 #' [`fgseaSimple`][fgsea::fgseaSimple] for details.
+#' @param score_type Character string indicating how to handle gene-level
+#'   statistic signs when calculating enrichment scores. One of:
+#'   \itemize{
+#'     \item `"std"`: Use original signed statistics (standard behavior).
+#'     \item `"pos"`: Use only positive statistics; negative values set to zero.
+#'     \item `"neg"`: Use only negative statistics; positive values set to zero.
+#'   }
 #' @export
 GSEASimple <- new_class(
     "GSEASimple", GSEAPrerank,
@@ -106,8 +128,6 @@ GSEASimple <- new_class(
         )
     )
 )
-
-S4_register(GSEASimple)
 
 method(bridge, GSEASimple) <- function(method, source, target) {
     check_bioc_installed("fgsea", "to use {.field GSEASimple} method")
@@ -141,6 +161,8 @@ method(bridge, GSEASimple) <- function(method, source, target) {
 
 #' @describeIn GSEAPrerank `fgsea` algorithm. See
 #' [`fgseaMultilevel`][fgsea::fgseaMultilevel] for details.
+#' @param sample_size Number of samples per level for multilevel splitting.
+#' @param eps Minimum p-value to estimate; must be a small positive number.
 #' @export
 GSEAMultilevel <- new_class(
     "GSEAMultilevel",
@@ -214,6 +236,11 @@ method(bridge, GSEAMultilevel) <- function(method, source, target) {
 # GSEA method (official) -------------------------------
 #' @describeIn GSEAPrerank R-based GSEA gene-permutation algorithm (official).
 #' See [`GSEA`][GSEA::GSEA] for details.
+#' @param odir Character string giving the output directory where the
+#'   GSEA results will be saved. If `NA` (default), a temporary directory
+#'   is used and deleted automatically after processing. If a path is
+#'   provided, the directory will be created if it does not exist and
+#'   retained after completion.
 #' @export
 GSEABroadGene <- new_class(
     "GSEABroadGene", GSEAPrerank,

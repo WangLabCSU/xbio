@@ -6,7 +6,7 @@
 \alias{GSEASimple}
 \alias{GSEAMultilevel}
 \alias{GSEABroadGene}
-\title{GSEA prerank algorithm}
+\title{Gene Set Enrichment Analysis (GSEA) - Preranked Variants}
 \usage{
 GSEAGene(exponent = 1, nperm = 1000, threads = NULL)
 
@@ -23,8 +23,41 @@ GSEAMultilevel(
 
 GSEABroadGene(exponent = 1, nperm = 1000L, odir = NA_character_)
 }
+\arguments{
+\item{exponent}{A positive numeric scalar that controls the weighting of the
+ranking metric. A value of \code{1} corresponds to the original GSEA method.}
+
+\item{nperm}{A positive integer specifying the number of permutations to
+estimate statistical significance. Higher values improve precision but
+increase runtime.}
+
+\item{threads}{Integer. Number of threads to use for parallel computation.
+Defaults to all available cores.}
+
+\item{score_type}{Character string indicating how to handle gene-level
+statistic signs when calculating enrichment scores. One of:
+\itemize{
+\item \code{"std"}: Use original signed statistics (standard behavior).
+\item \code{"pos"}: Use only positive statistics; negative values set to zero.
+\item \code{"neg"}: Use only negative statistics; positive values set to zero.
+}}
+
+\item{eps}{Minimum p-value to estimate; must be a small positive number.}
+
+\item{sample_size}{Number of samples per level for multilevel splitting.}
+
+\item{odir}{Character string giving the output directory where the
+GSEA results will be saved. If \code{NA} (default), a temporary directory
+is used and deleted automatically after processing. If a path is
+provided, the directory will be created if it does not exist and
+retained after completion.}
+}
 \description{
-GSEA prerank algorithm
+A family of enrichment methods based on the GSEA preranked algorithm,
+evaluating gene set enrichment using a ranked gene list as input. These
+methods differ in implementation (e.g., R, Rust, or C++ backends), p-value
+estimation techniques (e.g., empirical, adaptive multilevel), and performance
+optimizations.
 }
 \section{Functions}{
 \itemize{
