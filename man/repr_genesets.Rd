@@ -7,7 +7,7 @@
 \alias{genesets.list}
 \alias{genesets.character}
 \alias{genesets.OrgDb}
-\title{Create Gene Sets representation}
+\title{Create a standardized gene sets representation}
 \usage{
 repr_genesets(gs, ..., min_size = 5, max_size = 500)
 
@@ -24,27 +24,30 @@ genesets(gs, ..., `_arg` = NULL)
 \arguments{
 \item{gs}{Specify the gene sets to use. Accepted formats:
 \itemize{
-\item \code{character}: A string indicating the source of gene sets.
+\item \code{character}: A string indicating the source of gene sets. Valid values
+include:
 \itemize{
-\item Acceptable values include \code{"go/GO"} or \code{"kegg/KEGG"}, which
-download gene sets from the GO or KEGG databases. In this case,
-additional arguments such as (\code{link}, \code{database}), \code{strategy}, and \code{save}
-can be used. See \code{\link[=kegg_genesets]{kegg_genesets()}} and \code{\link[=godb]{godb()}} for details.
-\item You may also specify the name of an
-\href{https://bioconductor.org/packages/release/BiocViews.html#___OrgDb}{\code{OrgDb}}
-package, which will call the \code{OrgDb} method.
+\item \code{"go"} / \code{"GO"} or \code{"kegg"} / \code{"KEGG"}: Download gene sets from GO or
+KEGG using \code{\link[=godb]{godb()}} or \code{\link[=kegg_genesets]{kegg_genesets()}}. Optional parameters include
+\code{link}, \code{database}, \code{strategy}, and \code{save}. See \code{\link[=kegg_genesets]{kegg_genesets()}} and
+\code{\link[=godb]{godb()}} for details.
+\item The name of an \href{https://bioconductor.org/packages/release/BiocViews.html#___OrgDb}{\code{OrgDb}} package, used to extract GO gene sets.
 \item Alternatively, provide a file path to a \code{.gmt} or \code{.gmx} file to import
 custom gene sets.
 }
-\item \code{data.frame}: A data frame with \code{2}, \code{3}, or \code{4} columns, representing gene
-set IDs, optional terms (if \code{4} columns), optional descriptions (if
-\code{3}/\code{4} columns), and associated genes or features.
-\item \code{list}: A list where each element is a character vector representing a gene
-set. A \code{term}/\code{description} attribute can be attached to each element, or a
-\code{terms}/\code{descriptions} attribute to the entire list.
+\item \code{data.frame}: A data frame with 1–4 columns. Expected columns include:
+\itemize{
+\item (Optional) Gene set ID
+\item (Optional) term name
+\item (Optional) description
+\item Gene symbols or features
+}
+\item \code{list}: A named or unnamed list where each element is a character vector of
+genes. Optionally, attach \code{term} or \code{description} attributes to each
+element, or \code{terms} / \code{descriptions} attributes to the entire list.
 \item \code{OrgDb}: An
 \href{https://bioconductor.org/packages/release/BiocViews.html#___OrgDb}{\code{OrgDb}}
-object used to retrieve GO gene sets.
+object (e.g., \code{org.Hs.eg.db}) to extract GO gene sets.
 }}
 
 \item{...}{Additional arguments passed to the method.}
@@ -79,5 +82,25 @@ one or more of \code{"BP"}, \code{"CC"}, and \code{"MF"}.}
 A \code{xbio_genesets} object.
 }
 \description{
-Create Gene Sets representation
+\code{repr_genesets()} is a wrapper around \code{genesets()} that additionally tidies
+and filters the gene sets. It removes invalid entries, such as gene sets with
+no genes or containing only missing values. This function ensures the
+returned object is clean and ready for downstream analysis.
+}
+\examples{
+# Read from a KEGG source
+repr_genesets("kegg")
+
+# Load from a local GMT file
+\dontrun{
+repr_genesets("path/to/genesets.gmt")
+}
+
+# Construct from a list
+repr_genesets(list(set1 = c("A", "B", "C"), set2 = c("X", "Y")))
+
+# From a data.frame
+df <- data.frame(set = c("A", "A", "B"), gene = c("x", "y", "z"))
+repr_genesets(df)
+
 }

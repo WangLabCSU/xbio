@@ -201,9 +201,9 @@ gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
 #' @keywords internal
 #' @noRd
 gs_tidy <- function(gs) {
-    out <- lapply(gs, function(geneset) {
+    out <- gs_lapply(gs, function(geneset) {
         geneset <- vec_unique(geneset)
-        geneset[!is.na(geneset) & geneset != ""]
+        geneset[!is.na(geneset) & as.character(geneset) != ""]
     })
     if (!all(keep <- list_sizes(out) > 0L)) {
         cli::cli_warn(paste(
@@ -212,7 +212,7 @@ gs_tidy <- function(gs) {
         ))
         out <- out[keep]
     }
-    vec_restore(out, gs)
+    out
 }
 
 gs_lapply <- function(gs, ...) vec_restore(lapply(gs, ...), gs)

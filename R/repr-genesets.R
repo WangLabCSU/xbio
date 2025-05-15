@@ -1,25 +1,31 @@
-#' Create Gene Sets representation
+#' Create a standardized gene sets representation
+#'
+#' `repr_genesets()` is a wrapper around `genesets()` that additionally tidies
+#' and filters the gene sets. It removes invalid entries, such as gene sets with
+#' no genes or containing only missing values. This function ensures the
+#' returned object is clean and ready for downstream analysis.
 #'
 #' @param gs Specify the gene sets to use. Accepted formats:
-#' - `character`: A string indicating the source of gene sets.
-#'   * Acceptable values include `r oxford_or(c("go/GO", "kegg/KEGG"))`, which
-#'     download gene sets from the GO or KEGG databases. In this case,
-#'     additional arguments such as (`link`, `database`), `strategy`, and `save`
-#'     can be used. See [`kegg_genesets()`] and [`godb()`] for details.
-#'   * You may also specify the name of an
-#'     [`OrgDb`](https://bioconductor.org/packages/release/BiocViews.html#___OrgDb)
-#'     package, which will call the `OrgDb` method.
+#' - `character`: A string indicating the source of gene sets. Valid values
+#'   include:
+#'   * `"go"` / `"GO"` or `"kegg"` / `"KEGG"`: Download gene sets from GO or
+#'     KEGG using [`godb()`] or [`kegg_genesets()`]. Optional parameters include
+#'     `link`, `database`, `strategy`, and `save`. See [`kegg_genesets()`] and
+#'     [`godb()`] for details.
+#'   * The name of an [`OrgDb`](https://bioconductor.org/packages/release/BiocViews.html#___OrgDb) package, used to extract GO gene sets.
 #'   * Alternatively, provide a file path to a `.gmt` or `.gmx` file to import
 #'     custom gene sets.
-#' - `data.frame`: A data frame with `2`, `3`, or `4` columns, representing gene
-#'   set IDs, optional terms (if `4` columns), optional descriptions (if
-#'   `3`/`4` columns), and associated genes or features.
-#' - `list`: A list where each element is a character vector representing a gene
-#'   set. A `term`/`description` attribute can be attached to each element, or a
-#'   `terms`/`descriptions` attribute to the entire list.
+#' - `data.frame`: A data frame with 1–4 columns. Expected columns include:
+#'   * (Optional) Gene set ID
+#'   * (Optional) term name
+#'   * (Optional) description
+#'   * Gene symbols or features
+#' - `list`: A named or unnamed list where each element is a character vector of
+#'   genes. Optionally, attach `term` or `description` attributes to each
+#'   element, or `terms` / `descriptions` attributes to the entire list.
 #' - `OrgDb`: An
 #'   [`OrgDb`](https://bioconductor.org/packages/release/BiocViews.html#___OrgDb)
-#'   object used to retrieve GO gene sets.
+#'   object (e.g., `org.Hs.eg.db`) to extract GO gene sets.
 #' @param ... Additional arguments passed to the method.
 #' @param min_size,max_size An integer specifying the minimum/maximum size of
 #' gene sets to include in the analysis.
@@ -27,6 +33,22 @@
 #' internal to provide better message.
 #' @inheritParams keggdb
 #' @return A `xbio_genesets` object.
+#' @examples
+#' # Read from a KEGG source
+#' repr_genesets("kegg")
+#'
+#' # Load from a local GMT file
+#' \dontrun{
+#' repr_genesets("path/to/genesets.gmt")
+#' }
+#'
+#' # Construct from a list
+#' repr_genesets(list(set1 = c("A", "B", "C"), set2 = c("X", "Y")))
+#'
+#' # From a data.frame
+#' df <- data.frame(set = c("A", "A", "B"), gene = c("x", "y", "z"))
+#' repr_genesets(df)
+#'
 #' @export
 repr_genesets <- function(gs, ..., min_size = 5, max_size = 500) {
     out <- genesets(gs, ...)
