@@ -92,18 +92,20 @@ returned object is clean and ready for downstream analysis.
 }
 \examples{
 # Read from a KEGG source
-repr_genesets("kegg")
+genesets("kegg")
+repr_genesets("kegg", min_size = 5, max_size = 500)
 
 # Load from a local GMT file
 \dontrun{
-repr_genesets("path/to/genesets.gmt")
+genesets("path/to/genesets.gmt")
+repr_genesets("path/to/genesets.gmt", min_size = 5, max_size = 500)
 }
 
 # Construct from a list
-repr_genesets(list(set1 = c("A", "B", "C"), set2 = c("X", "Y")))
+genesets(list(set1 = c("A", "B", "C"), set2 = c("X", "Y")))
 
 # From a data.frame
 df <- data.frame(set = c("A", "A", "B"), gene = c("x", "y", "z"))
-repr_genesets(df)
+genesets(df)
 
 }
