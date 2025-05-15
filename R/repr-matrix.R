@@ -32,7 +32,7 @@ repr_matrix.dgCMatrix <- function(matrix, ..., `_arg` = NULL) matrix
 #' @rdname repr_matrix
 repr_matrix.Seurat <- function(matrix, assay = NULL, ...,
                                dimred = NULL, n_dimred = NULL,
-                               layer = "data") {
+                               layer = "data", `_arg` = NULL) {
     if (!is.null(dimred)) {
         # value is expected to be a matrix or matrix-like object with number of
         # rows equal to ncol(x).
@@ -53,14 +53,16 @@ repr_matrix.Seurat <- function(matrix, assay = NULL, ...,
 
 #' @export
 #' @rdname repr_matrix
-repr_matrix.SummarizedExperiment <- function(matrix, assay = NULL, ...) {
+repr_matrix.SummarizedExperiment <- function(matrix, assay = NULL, ...,
+                                             `_arg` = NULL) {
     getExportedValue("SummarizedExperiment", "assay")(matrix, assay %||% 1L)
 }
 
 #' @export
 #' @rdname repr_matrix
 repr_matrix.SingleCellExperiment <- function(matrix, assay = NULL, ...,
-                                             dimred = NULL, n_dimred = NULL) {
+                                             dimred = NULL, n_dimred = NULL,
+                                             `_arg` = NULL) {
     if (!is.null(dimred)) {
         # value is expected to be a matrix or matrix-like object with number of
         # rows equal to ncol(x).

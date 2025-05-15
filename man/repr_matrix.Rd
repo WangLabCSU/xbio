@@ -21,12 +21,20 @@ repr_matrix(matrix, ..., `_arg` = NULL)
   ...,
   dimred = NULL,
   n_dimred = NULL,
-  layer = "data"
+  layer = "data",
+  `_arg` = NULL
 )
 
-\method{repr_matrix}{SummarizedExperiment}(matrix, assay = NULL, ...)
+\method{repr_matrix}{SummarizedExperiment}(matrix, assay = NULL, ..., `_arg` = NULL)
 
-\method{repr_matrix}{SingleCellExperiment}(matrix, assay = NULL, ..., dimred = NULL, n_dimred = NULL)
+\method{repr_matrix}{SingleCellExperiment}(
+  matrix,
+  assay = NULL,
+  ...,
+  dimred = NULL,
+  n_dimred = NULL,
+  `_arg` = NULL
+)
 }
 \arguments{
 \item{matrix}{Input object used to extract the matrix.}
