@@ -42,9 +42,9 @@ BugReports: https://github.com/Yunuuuu/xbio/issues
 Collate: 
     'annohub.R'
     'bridge-.R'
-    'bridge-gsea-broad.R'
     'utils-S7.R'
     'bridge-gsea-prerank.R'
+    'bridge-gsea-sample.R'
     'db-.R'
     'db-go.R'
     'db-kegg.R'

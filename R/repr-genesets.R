@@ -59,29 +59,28 @@ repr_genesets <- function(gs, ..., min_size = 5, max_size = 500) {
 #' @export
 #' @rdname repr_genesets
 genesets <- function(gs, ..., `_arg` = NULL) {
-    # Tricks to do common work in S3 generic
-    .genesets(gs, ..., `_arg` = `_arg` %||% "gs")
-}
-
-.genesets <- function(gs, ..., `_arg` = NULL) {
-    if (missing(gs)) {
-        cli::cli_abort("{.arg {`_arg`}} must be provided")
+    genesets <- function(gs, ..., `_arg` = NULL) {
+        if (missing(gs)) {
+            cli::cli_abort("{.arg {`_arg`}} must be provided")
+        }
+        UseMethod("genesets")
     }
-    UseMethod("genesets")
+    # Tricks to do common work in S3 generic
+    # Define the default argument of `_arg`
+    genesets(gs, ..., `_arg` = `_arg` %||% "gs")
 }
 
-#' @exportS3Method genesets default
+#' @export
 genesets.default <- function(gs, ..., `_arg` = NULL) {
     cli::cli_abort("Cannot extract genesets from {.obj_type_friendly {gs}}")
 }
 
-#' @exportS3Method genesets xbio_genesets
+#' @export
 genesets.xbio_genesets <- function(gs, ..., `_arg` = NULL) gs
 
 #' @param select A character or integer vector select the columns to be used for
 #' a data.frame input.
-#' @exportS3Method genesets data.frame
-#' @method genesets data.frame
+#' @export
 #' @rdname repr_genesets
 genesets.data.frame <- function(gs, ..., select = NULL, `_arg` = NULL) {
     rlang::check_dots_empty()
@@ -106,8 +105,7 @@ genesets.data.frame <- function(gs, ..., select = NULL, `_arg` = NULL) {
 #' @param terms A character vector of gene set terms for list input.
 #' @param descriptions A character vector of gene set descriptions for a list
 #' input.
-#' @exportS3Method genesets list
-#' @method genesets list
+#' @export
 #' @rdname repr_genesets
 genesets.list <- function(gs, ..., ids = NULL, terms = NULL,
                           descriptions = NULL, `_arg` = NULL) {
@@ -142,8 +140,7 @@ genesets.list <- function(gs, ..., ids = NULL, terms = NULL,
     vec_cast(gs, new_genesets())
 }
 
-#' @exportS3Method genesets character
-#' @method genesets character
+#' @export
 #' @rdname repr_genesets
 genesets.character <- function(gs, ..., verbose = TRUE, `_arg` = NULL) {
     if (!.rlang_check_string(gs, allow_empty = FALSE)) {
@@ -205,8 +202,7 @@ genesets.character <- function(gs, ..., verbose = TRUE, `_arg` = NULL) {
 #' use.
 #' @param ontology A character vector specifying the GO ontology to use. Must be
 #' one or more of `r oxford_and(GO_ONTOLOGY)`.
-#' @exportS3Method genesets OrgDb
-#' @method genesets OrgDb
+#' @export
 #' @rdname repr_genesets
 genesets.OrgDb <- function(gs, ..., keytype = "SYMBOL", ontology = NULL,
                            `_arg` = NULL) {
@@ -230,7 +226,7 @@ genesets.OrgDb <- function(gs, ..., keytype = "SYMBOL", ontology = NULL,
     genesets(out, select = c("GOALL", "ONTOLOGYALL", keytype))
 }
 
-#' @exportS3Method genesets xbio_kegg_genesets
+#' @export
 genesets.xbio_kegg_genesets <- function(gs, ..., `_arg` = NULL) {
     vec_cast(gs, new_genesets(), x_arg = `_arg`)
 }
