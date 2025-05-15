@@ -9,7 +9,7 @@
 \alias{genesets.OrgDb}
 \title{Create a standardized gene sets representation}
 \usage{
-repr_genesets(gs, ..., min_size = 5, max_size = 500)
+repr_genesets(gs, ..., min_size = NULL, max_size = NULL)
 
 genesets(gs, ..., `_arg` = NULL)
 
@@ -52,8 +52,11 @@ object (e.g., \code{org.Hs.eg.db}) to extract GO gene sets.
 
 \item{...}{Additional arguments passed to the method.}
 
-\item{min_size, max_size}{An integer specifying the minimum/maximum size of
-gene sets to include in the analysis.}
+\item{min_size}{An integer specifying the minimum number of genes
+a gene set must contain to be retained. If \code{NULL}, no lower bound is applied.}
+
+\item{max_size}{An integer specifying the maximum number of genes
+a gene set may contain to be retained. If \code{NULL}, no upper bound is applied.}
 
 \item{_arg}{A single string of the argument name for \code{gs}, used by the
 internal to provide better message.}

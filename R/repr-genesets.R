@@ -27,8 +27,7 @@
 #'   [`OrgDb`](https://bioconductor.org/packages/release/BiocViews.html#___OrgDb)
 #'   object (e.g., `org.Hs.eg.db`) to extract GO gene sets.
 #' @param ... Additional arguments passed to the method.
-#' @param min_size,max_size An integer specifying the minimum/maximum size of
-#' gene sets to include in the analysis.
+#' @inheritParams gs_filter
 #' @param _arg A single string of the argument name for `gs`, used by the
 #' internal to provide better message.
 #' @inheritParams keggdb
@@ -50,7 +49,7 @@
 #' repr_genesets(df)
 #'
 #' @export
-repr_genesets <- function(gs, ..., min_size = 5, max_size = 500) {
+repr_genesets <- function(gs, ..., min_size = NULL, max_size = NULL) {
     out <- genesets(gs, ...)
     out <- gs_clean(out)
     gs_filter(out, min_size = min_size, max_size = max_size)
