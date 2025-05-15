@@ -52,8 +52,6 @@ new_genesets <- function(genesets = list(),
     new_vctr(genesets, ..., class = "xbio_genesets")
 }
 
-methods::setOldClass("xbio_genesets") # Used by S4
-
 S3_genesets <- new_S3_class("xbio_genesets") # Used by S7
 
 #' @export

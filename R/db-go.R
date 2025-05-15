@@ -11,8 +11,9 @@ godb_download <- function(database) {
             database
         )
     }
-    ofile <- file.path(cache_dir(), "GO", basename(url))
+    ofile <- file.path(tempdir(), "GO", basename(url))
     utils::download.file(url, ofile)
+    on.exit(file.remove(ofile))
     if (identical(database, "ontology")) {
         read_lines(ofile) # TO-DO: read_obo
     } else {

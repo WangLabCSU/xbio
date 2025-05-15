@@ -18,8 +18,6 @@ repr_metrics <- function(metrics, ..., `_arg` = NULL) {
 
 new_metrics <- function(x) structure(x, class = "xbio_metrics")
 
-methods::setOldClass("xbio_metrics")
-
 is_valid_metrics <- function(metrics, names) {
     valid <- !vec_detect_missing(names) & names != ""
     if (!all(valid)) {

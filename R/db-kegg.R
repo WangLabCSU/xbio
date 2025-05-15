@@ -218,8 +218,6 @@ kegg_genesets_download <- function(database, organism, link) {
     )
 }
 
-methods::setOldClass("xbio_kegg_genesets")
-
 S3_kegg_genesets <- new_S3_class("xbio_kegg_genesets")
 
 KEGG_NO_PATHWAY <- c(
