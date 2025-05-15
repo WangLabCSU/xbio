@@ -7,7 +7,7 @@
 \alias{genesets.list}
 \alias{genesets.character}
 \alias{genesets.OrgDb}
-\title{Create a standardized gene sets representation}
+\title{Create genesets representation}
 \usage{
 repr_genesets(gs, ..., min_size = NULL, max_size = NULL)
 
@@ -85,10 +85,15 @@ one or more of \code{"BP"}, \code{"CC"}, and \code{"MF"}.}
 A \code{xbio_genesets} object.
 }
 \description{
-\code{repr_genesets()} is a wrapper around \code{genesets()} that additionally clean
+\code{repr_genesets()} is a wrapper around \code{genesets()} that additionally cleans
 and filters the gene sets. It removes invalid entries, such as gene sets with
-no genes or containing only missing values. This function ensures the
+no genes or those containing only missing values. This function ensures the
 returned object is clean and ready for downstream analysis.
+
+All analyses that depend on the gene set representation will use
+\code{repr_genesets()} with its default arguments. If you want to customize
+filtering, such as setting thresholds on gene set size (\code{min_size} /
+\code{max_size}), you must call \code{repr_genesets()}/\code{gs_filter()} manually.
 }
 \examples{
 # Read from a KEGG source

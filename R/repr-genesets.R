@@ -1,9 +1,15 @@
-#' Create a standardized gene sets representation
+#' Create genesets representation
 #'
-#' `repr_genesets()` is a wrapper around `genesets()` that additionally clean
+#' @description
+#' `repr_genesets()` is a wrapper around `genesets()` that additionally cleans
 #' and filters the gene sets. It removes invalid entries, such as gene sets with
-#' no genes or containing only missing values. This function ensures the
+#' no genes or those containing only missing values. This function ensures the
 #' returned object is clean and ready for downstream analysis.
+#'
+#' All analyses that depend on the gene set representation will use
+#' `repr_genesets()` with its default arguments. If you want to customize
+#' filtering, such as setting thresholds on gene set size (`min_size` /
+#' `max_size`), you must call `repr_genesets()`/`gs_filter()` manually.
 #'
 #' @param gs Specify the gene sets to use. Accepted formats:
 #' - `character`: A string indicating the source of gene sets. Valid values
