@@ -3,11 +3,30 @@
 \name{repr_matrix}
 \alias{repr_matrix}
 \alias{repr_matrix.matrix}
+\alias{repr_matrix.dgCMatrix}
+\alias{repr_matrix.Seurat}
+\alias{repr_matrix.SummarizedExperiment}
+\alias{repr_matrix.SingleCellExperiment}
 \title{Extract matrix}
 \usage{
 repr_matrix(matrix, ..., `_arg` = NULL)
 
 \method{repr_matrix}{matrix}(matrix, ..., `_arg` = NULL)
+
+\method{repr_matrix}{dgCMatrix}(matrix, ..., `_arg` = NULL)
+
+\method{repr_matrix}{Seurat}(
+  matrix,
+  assay = NULL,
+  ...,
+  dimred = NULL,
+  n_dimred = NULL,
+  layer = "data"
+)
+
+\method{repr_matrix}{SummarizedExperiment}(matrix, assay = NULL, ...)
+
+\method{repr_matrix}{SingleCellExperiment}(matrix, assay = NULL, ..., dimred = NULL, n_dimred = NULL)
 }
 \arguments{
 \item{matrix}{Input object used to extract the matrix.}
@@ -18,7 +37,7 @@ repr_matrix(matrix, ..., `_arg` = NULL)
 internal to provide better message.}
 }
 \value{
-A \code{xbio_matrix} object, which is a named numeric vector.
+A matrix object.
 }
 \description{
 Extract matrix
