@@ -27,14 +27,11 @@ GSEAPrerank <- new_class("GSEAPrerank",
     )
 )
 
-S4_register(GSEAPrerank)
+method(repr_source, list(GSEAPrerank, class_any)) <- function(method, source) {
+    repr_metrics(source, `_arg` = "source")
+}
 
-methods::setMethod(
-    "repr_source", c("xbio::GSEAPrerank", "ANY"),
-    function(method, source) repr_metrics(source, `_arg` = "source")
-)
-
-method(repr_target, GSEAPrerank) <- function(method, target) {
+method(repr_target, list(GSEAPrerank, class_any)) <- function(method, target) {
     repr_genesets(target, `_arg` = "target")
 }
 
@@ -68,9 +65,7 @@ GSEAGene <- new_class("GSEAGene", GSEAPrerank,
     }
 )
 
-S4_register(GSEAGene)
-
-method(bridge, GSEAGene) <- function(source, target, method) {
+method(bridge, GSEAGene) <- function(method, source, target) {
     out <- rust_call(
         "gsea_gene_permutate",
         names(source),
@@ -114,7 +109,7 @@ GSEASimple <- new_class(
 
 S4_register(GSEASimple)
 
-method(bridge, GSEASimple) <- function(source, target, method) {
+method(bridge, GSEASimple) <- function(method, source, target) {
     check_bioc_installed("fgsea", "to use {.field GSEASimple} method")
     # Save the genesets information, will be restored in the result
     gs_data <- new_data_frame(list(
@@ -184,9 +179,7 @@ GSEAMultilevel <- new_class(
     }
 )
 
-S4_register(GSEAMultilevel)
-
-method(bridge, GSEAMultilevel) <- function(source, target, method) {
+method(bridge, GSEAMultilevel) <- function(method, source, target) {
     check_bioc_installed("fgsea", "to use {.field GSEAMultilevel} method")
     # Save the genesets information, will be restored in the result
     gs_data <- new_data_frame(list(
@@ -232,9 +225,7 @@ GSEABroadGene <- new_class(
     )
 )
 
-S4_register(GSEABroadGene)
-
-method(bridge, GSEABroadGene) <- function(source, target, method) {
+method(bridge, GSEABroadGene) <- function(method, source, target) {
     check_remote_installed(
         "GSEA", "GSEA-MSigDB/GSEA_R",
         "to use {.field GSEABroadGene} method"

@@ -2,7 +2,6 @@
 % Please edit documentation in R/xbio-package.R
 \docType{package}
 \name{xbio-package}
-\alias{xbio}
 \alias{xbio-package}
 \title{xbio: Cross-Process Scoring and Linking Framework for Interpreting Biological Associations}
 \description{

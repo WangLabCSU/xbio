@@ -1,18 +1,9 @@
 #' Bridge Functional Links Between Biological Processes
 #'
-#' @description
-#' In biological research, scoring methods are commonly used to evaluate the
-#' association between two sets of biological processes. These may include
-#' well-characterized processes (the *target*), poorly understood ones (the
-#' *source*), or even two processes of unknown function. By quantifying their
-#' association, we can infer potential biological relevance or shared
-#' functionality. A strong association suggests functional similarity or
-#' coordinated regulation.
-#'
-#' Biological processes are typically represented by one of the following:
-#' - One or more gene sets ([`repr_genesets()`])
-#' - A ranked metric ([`repr_metrics()`])
-#' - A gene set based on a hard threshold ([`repr_threshold()`])
+#' `xbio()` / `bridge()` evaluate the functional association between source and
+#' target biological process representations using various enrichment-based
+#' methods. The two functions are equivalent in functionality but differ in the
+#' ordering of their arguments.
 #'
 #' @param source The input source to be scored, depending on the selected
 #' `method`.
@@ -42,53 +33,63 @@
 #'    [`GSEAMultilevel()`], and [`GSEABroadGene()`].
 #'  - **GSEA sample-permutation algorithm**: [`GSEABroad()`] and [GSEASample()].
 #'  - **Rank-Rank Hypergeometric Overlap test**: [`RRHO()`].
+#'
+#' @details
+#' In biological research, scoring methods are commonly used to evaluate the
+#' association between two sets of biological processes. These may include
+#' well-characterized processes (the *target*), poorly understood ones (the
+#' *source*), or even two processes of unknown function. By quantifying their
+#' association, we can infer potential biological relevance or shared
+#' functionality. A strong association suggests functional similarity or
+#' coordinated regulation.
+#'
+#' Biological processes are typically represented by one of the following:
+#' - One or more gene sets ([`repr_genesets()`])
+#' - A ranked metric ([`repr_metrics()`])
+#' - A gene set based on a hard threshold ([`repr_threshold()`])
+#'
 #' @export
-methods::setGeneric(
-    "bridge",
-    signature = "method",
-    function(source, target, method) {
+xbio <- function(source, target, method) bridge(method, source, target)
+
+#' @export
+#' @rdname xbio
+bridge <- new_generic(
+    "bridge", "method",
+    function(method, source, target) {
         source <- repr_source(method, source)
         target <- repr_target(method, target)
-        standardGeneric("bridge")
+        S7_dispatch()
     }
 )
 
-methods::setMethod("bridge", "ANY", function(source, target, method) {
+method(bridge, class_any) <- function(method, source, target) {
     cli::cli_abort(
         "No {.field bridge} method for {.obj_type_friendly {method}}"
     )
-})
+}
 
-#' @keywords repr_source
-methods::setGeneric("repr_source",
-    signature = c("method", "source"),
-    function(method, source) standardGeneric("repr_source")
+repr_source <- new_generic(
+    "repr_source", c("method", "source"),
+    function(method, source) S7_dispatch()
 )
 
-methods::setMethod(
-    "repr_source", c("missing", "ANY"),
-    function(method, source) {
-        cli::cli_abort("{.arg method} must be provided")
-    }
-)
-
-methods::setMethod(
-    "repr_source", c("ANY", "ANY"),
-    function(method, source) {
-        cli::cli_abort("Invalid {.arg method} provided")
-    }
-)
-
-#' @keywords repr_target
-repr_target <- new_generic(
-    "repr_target", "method",
-    function(method, target) S7_dispatch()
-)
-
-method(repr_target, class_missing) <- function(method, target) {
+method(repr_source, list(class_missing, class_any)) <- function(method, source) {
     cli::cli_abort("{.arg method} must be provided")
 }
 
-method(repr_target, class_any) <- function(method, target) {
+method(repr_source, list(class_any, class_any)) <- function(method, source) {
+    cli::cli_abort("Invalid {.arg method} provided")
+}
+
+repr_target <- new_generic(
+    "repr_target", c("method", "target"),
+    function(method, target) S7_dispatch()
+)
+
+method(repr_target, list(class_missing, class_any)) <- function(method, target) {
+    cli::cli_abort("{.arg method} must be provided")
+}
+
+method(repr_target, list(class_any, class_any)) <- function(method, target) {
     cli::cli_abort("Invalid {.arg method} provided")
 }
