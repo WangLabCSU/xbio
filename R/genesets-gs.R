@@ -215,17 +215,7 @@ gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
 #' gs_clean(gs)
 #'
 #' @export
-gs_clean <- function(gs) {
-    out <- gs_lapply(gs, gs_clean.xbio_geneset)
-    if (!all(keep <- list_sizes(out) > 0L)) {
-        cli::cli_warn(paste(
-            "Removing {sum(!keep)} invalid gene set{?s}",
-            "(all are empty string or missing value)"
-        ))
-        out <- out[keep]
-    }
-    out
-}
+gs_clean <- function(gs) UseMethod("gs_clean")
 
 #' @export
 gs_clean.xbio_geneset <- function(gs) {
