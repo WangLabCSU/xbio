@@ -1,6 +1,6 @@
 #' Create a standardized gene sets representation
 #'
-#' `repr_genesets()` is a wrapper around `genesets()` that additionally tidies
+#' `repr_genesets()` is a wrapper around `genesets()` that additionally clean
 #' and filters the gene sets. It removes invalid entries, such as gene sets with
 #' no genes or containing only missing values. This function ensures the
 #' returned object is clean and ready for downstream analysis.
@@ -52,7 +52,7 @@
 #' @export
 repr_genesets <- function(gs, ..., min_size = 5, max_size = 500) {
     out <- genesets(gs, ...)
-    out <- gs_tidy(out)
+    out <- gs_clean(out)
     gs_filter(out, min_size = min_size, max_size = max_size)
 }
 

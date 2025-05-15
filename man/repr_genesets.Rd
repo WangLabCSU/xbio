@@ -82,7 +82,7 @@ one or more of \code{"BP"}, \code{"CC"}, and \code{"MF"}.}
 A \code{xbio_genesets} object.
 }
 \description{
-\code{repr_genesets()} is a wrapper around \code{genesets()} that additionally tidies
+\code{repr_genesets()} is a wrapper around \code{genesets()} that additionally clean
 and filters the gene sets. It removes invalid entries, such as gene sets with
 no genes or containing only missing values. This function ensures the
 returned object is clean and ready for downstream analysis.

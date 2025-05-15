@@ -198,13 +198,44 @@ gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
     gs
 }
 
-#' @keywords internal
-#' @noRd
-gs_tidy <- function(gs) {
-    out <- gs_lapply(gs, function(geneset) {
-        geneset <- vec_unique(geneset)
-        geneset[!is.na(geneset) & as.character(geneset) != ""]
-    })
+#' Clean gene sets by removing empty or invalid entries
+#'
+#' `gs_clean()` removes missing values and empty strings from each gene set.
+#' Gene sets that become empty after cleaning are discarded.
+#'
+#' @inheritParams gs_ids
+#' @return An object of the same class as `gs`, with invalid entries and empty
+#' gene sets removed.
+#' @examples
+#' gs <- genesets(list(
+#'     set1 = c("A", "B", NA, ""),
+#'     set2 = c("", NA),
+#'     set3 = c("C", "C")
+#' ))
+#' gs_clean(gs)
+#'
+#' @export
+gs_clean <- function(gs) {
+    out <- gs_lapply(gs, gs_clean.xbio_geneset)
+    if (!all(keep <- list_sizes(out) > 0L)) {
+        cli::cli_warn(paste(
+            "Removing {sum(!keep)} invalid gene set{?s}",
+            "(all are empty string or missing value)"
+        ))
+        out <- out[keep]
+    }
+    out
+}
+
+#' @export
+gs_clean.xbio_geneset <- function(gs) {
+    gs <- vec_unique(gs)
+    gs[!is.na(gs) & as.character(gs) != ""]
+}
+
+#' @export
+gs_clean.xbio_genesets <- function(gs, ...) {
+    out <- gs_lapply(gs, gs_clean.xbio_geneset)
     if (!all(keep <- list_sizes(out) > 0L)) {
         cli::cli_warn(paste(
             "Removing {sum(!keep)} invalid gene set{?s}",
