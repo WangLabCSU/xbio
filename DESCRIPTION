@@ -30,6 +30,7 @@ Imports:
     utils,
     vctrs (>= 0.5.0)
 Suggests:
+    pillar,
     AnnotationHub,
     biomaRt,
     fgsea,
@@ -61,6 +62,7 @@ Collate:
     'repr-matrix.R'
     'repr-metrics.R'
     'repr-threthold.R'
+    'tbl-class.R'
     'utils-file.R'
     'utils.R'
     'xbio-package.R'

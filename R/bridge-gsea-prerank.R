@@ -91,7 +91,7 @@ method(bridge, GSEAGene) <- function(method, source, target) {
         threads = method@threads,
         seed = sample.int(1e6L, 1L)
     )
-    new_data_frame(c(
+    new_gsea_result(c(
         list(
             ids = names(target),
             terms = gs_terms(target),
@@ -157,7 +157,7 @@ method(bridge, GSEASimple) <- function(method, source, target) {
     out <- out[c("ES", "NES", "pval", "padj", "leadingEdge")]
     names(out) <- c("es", "nes", "pvalue", "fdr", "leading_edge")
     out <- vec_cbind(vec_slice(gs_data, index), out)
-    vec_slice(out, order(index))
+    new_gsea_result(vec_slice(out, order(index)))
 }
 
 #' @describeIn GSEAPrerank `fgsea` algorithm. See
@@ -232,7 +232,7 @@ method(bridge, GSEAMultilevel) <- function(method, source, target) {
     out <- out[c("ES", "NES", "pval", "padj", "leadingEdge")]
     names(out) <- c("es", "nes", "pvalue", "fdr", "leading_edge")
     out <- vec_cbind(vec_slice(gs_data, index), out)
-    vec_slice(out, order(index))
+    new_gsea_result(vec_slice(out, order(index)))
 }
 
 # GSEA method (official) -------------------------------
@@ -311,5 +311,5 @@ method(bridge, GSEABroadGene) <- function(method, source, target) {
     out <- out[c("ES", "NES", "NOM p-val", "FDR q-val")]
     names(out) <- c("es", "nes", "pvalue", "fdr")
     out <- vec_cbind(vec_slice(gs_data, index), out)
-    vec_slice(out, order(index))
+    new_gsea_result(vec_slice(out, order(index)))
 }
