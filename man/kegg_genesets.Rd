@@ -15,9 +15,9 @@ kegg_genesets(
 \arguments{
 \item{link}{A KEGG organism code (e.g., \code{"hsa"} for human). A full list is
 available via \code{keggdb("organism")$organism}. This will link database using
-gene symbols for the specified organism. Alternatively, a KEGG database name
-can be provided to link pathway/disease associations based on database entry
-IDs.
+gene ENTREZ ID for the specified organism. Alternatively, a KEGG database
+name can be provided to link pathway/disease associations based on database
+entry IDs.
 
 the following database name can be linked to \strong{pathway} database:
 \code{"module"}, \code{"ko"}, \code{"compound"}, \code{"glycan"}, \code{"reaction"}, \code{"rclass"}, \code{"enzyme"}, and \code{"drug"}.
