@@ -227,9 +227,11 @@ gs_clean.xbio_geneset <- function(gs) {
 gs_clean.xbio_genesets <- function(gs, ...) {
     out <- gs_lapply(gs, gs_clean.xbio_geneset)
     if (!all(keep <- list_sizes(out) > 0L)) {
-        cli::cli_warn(paste(
-            "Removing {sum(!keep)} invalid gene set{?s}",
-            "(all are empty string or missing value)"
+        cli::cli_inform(c(
+            ">" = paste(
+                "Removing {sum(!keep)} invalid gene set{?s}",
+                "(all are empty string or missing value)"
+            )
         ))
         out <- out[keep]
     }
