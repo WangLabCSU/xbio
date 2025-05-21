@@ -59,7 +59,7 @@
 #' @export
 repr_genesets <- function(gs, ..., min_size = NULL, max_size = NULL) {
     out <- genesets(gs, ...)
-    out <- gs_lapply(gs, gs_clean.xbio_geneset)
+    out <- gs_lapply(out, gs_clean.xbio_geneset)
     if (!all(keep <- list_sizes(out) > 0L)) {
         cli::cli_warn(paste(
             "Removing {sum(!keep)} invalid gene set{?s}",
