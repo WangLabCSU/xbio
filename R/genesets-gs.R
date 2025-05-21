@@ -21,7 +21,7 @@ gs_ids.xbio_geneset <- function(gs) {
 
 #' @export
 gs_ids.xbio_genesets <- function(gs) {
-    vapply(gs, gs_ids.xbio_geneset, character(1L), USE.NAMES = FALSE)
+    vapply(vec_data(gs), gs_ids.xbio_geneset, character(1L), USE.NAMES = FALSE)
 }
 
 #' @export
@@ -35,7 +35,10 @@ gs_terms.xbio_geneset <- function(gs) {
 
 #' @export
 gs_terms.xbio_genesets <- function(gs) {
-    vapply(gs, gs_terms.xbio_geneset, character(1L), USE.NAMES = FALSE)
+    vapply(vec_data(gs), gs_terms.xbio_geneset,
+        character(1L),
+        USE.NAMES = FALSE
+    )
 }
 
 #' @export
@@ -49,7 +52,10 @@ gs_descs.xbio_geneset <- function(gs) {
 
 #' @export
 gs_descs.xbio_genesets <- function(gs) {
-    vapply(gs, gs_descs.xbio_geneset, character(1L), USE.NAMES = FALSE)
+    vapply(vec_data(gs), gs_descs.xbio_geneset,
+        character(1L),
+        USE.NAMES = FALSE
+    )
 }
 
 #######################################################
@@ -236,4 +242,4 @@ gs_clean.xbio_genesets <- function(gs, ...) {
     out
 }
 
-gs_lapply <- function(gs, ...) vec_restore(lapply(gs, ...), gs)
+gs_lapply <- function(gs, ...) vec_restore(lapply(vec_data(gs), ...), gs)

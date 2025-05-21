@@ -16,9 +16,8 @@ new_genesets <- function(genesets = list(),
             ))
         }
     }
-    if (is.null(terms)) {
-        terms <- rep_len(list(NULL), vec_size(genesets))
-    } else {
+    if (all(is.na(ids))) ids <- NULL
+    if (!is.null(terms)) {
         terms <- vec_cast(terms, character(), x_arg = arg_terms)
         if (vec_size(terms) != vec_size(genesets)) {
             cli::cli_abort(paste(
@@ -26,10 +25,9 @@ new_genesets <- function(genesets = list(),
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
+        if (all(is.na(terms))) terms <- NULL
     }
-    if (is.null(descriptions)) {
-        descriptions <- rep_len(list(NULL), vec_size(genesets))
-    } else {
+    if (!is.null(descriptions)) {
         descriptions <- vec_cast(
             descriptions, character(),
             x_arg = arg_descriptions
@@ -40,19 +38,25 @@ new_genesets <- function(genesets = list(),
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
+        if (all(is.na(descriptions))) descriptions <- NULL
     }
     genesets <- .mapply(
         new_geneset, list(
+            geneset = genesets,
             id = ids %||% rep_len(list(NULL), vec_size(genesets)),
-            geneset = genesets, term = terms, description = descriptions
+            term = terms %||% rep_len(list(NULL), vec_size(genesets)),
+            description = descriptions %||%
+                rep_len(list(NULL), vec_size(genesets))
         ),
         NULL
     )
-    names(genesets) <- ids
     new_vctr(genesets, ..., class = "xbio_genesets")
 }
 
 S3_genesets <- new_S3_class("xbio_genesets") # Used by S7
+
+#' @export
+names.xbio_genesets <- function(x) gs_ids(x)
 
 #' @export
 `names<-.xbio_genesets` <- function(x, value) {
@@ -61,17 +65,43 @@ S3_genesets <- new_S3_class("xbio_genesets") # Used by S7
         vec_check_size(value, vec_size(x), arg = "names")
     }
     # we always ensure the names is the same with the element id
-    old <- x
-    x <- .mapply(
+    out <- .mapply(
         function(geneset, id) {
             attr(geneset, "id") <- id
             geneset
         },
-        list(geneset = x, id = value %||% rep_len(list(NULL), vec_size(x))),
+        list(
+            geneset = vec_data(x),
+            id = value %||% rep_len(list(NULL), vec_size(x))
+        ),
         NULL
     )
-    vec_restore(NextMethod(), old)
+    vec_restore(out, x)
 }
+
+#' @export
+`[.xbio_genesets` <- function(x, i, ...) {
+    if (!missing(...)) {
+        abort("Can't index genesets on dimensions greater than 1.")
+    }
+    index <- vec_as_location(i,
+        n = vec_size(x), names = gs_ids(x),
+        missing = "error"
+    )
+    vec_slice(x, index)
+}
+
+#' @export
+`[[.xbio_genesets` <- function(x, i, ...) {
+    index <- vec_as_location2(i,
+        n = vec_size(x), names = gs_ids(x),
+        missing = "error"
+    )
+    .subset2(x, index)
+}
+
+#' @export
+`$.xbio_genesets` <- `[[.xbio_genesets`
 
 #' @export
 vec_ptype_abbr.xbio_genesets <- function(x, ...) "genesets"
@@ -166,7 +196,7 @@ vec_cast.data.frame.xbio_genesets <- function(x, to, ...) {
     ids <- gs_ids(x)
     terms <- gs_terms(x)
     descriptions <- gs_descs(x)
-    genesets <- lapply(x, vec_cast, to = character())
+    genesets <- lapply(vec_data(x), vec_cast, to = character())
     new_data_frame(list(
         ids = ids,
         terms = terms,
@@ -195,13 +225,10 @@ vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
             descriptions = descriptions
         ))
         keys <- .subset2(locs, "key")
-        if (all(is.na(descriptions <- .subset2(keys, "descriptions")))) {
-            descriptions <- NULL
-        }
         new_genesets(
             vec_chop(x[[3L]], .subset2(locs, "loc")),
             ids = .subset2(keys, "ids"),
-            descriptions = descriptions
+            descriptions = .subset2(keys, "descriptions")
         )
     } else if (ncol(x) == 4L) {
         ids <- vec_cast(x[[1L]], character(), x_arg = "the 1st column")
@@ -212,16 +239,11 @@ vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
             descriptions = descriptions
         ))
         keys <- .subset2(locs, "key")
-        if (all(is.na(terms <- .subset2(keys, "terms")))) {
-            terms <- NULL
-        }
-        if (all(is.na(descriptions <- .subset2(keys, "descriptions")))) {
-            descriptions <- NULL
-        }
         new_genesets(
             vec_chop(x[[4L]], .subset2(locs, "loc")),
             ids = .subset2(keys, "ids"),
-            terms = terms, descriptions = descriptions
+            terms = .subset2(keys, "terms"),
+            descriptions = .subset2(keys, "descriptions")
         )
     } else {
         cli::cli_abort(paste(
@@ -250,47 +272,73 @@ vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
 as.data.frame.xbio_genesets <- function(x, ...) vec_cast(x, new_data_frame())
 
 #' @export
-vec_cast.list.xbio_genesets <- function(x, to, ...) vec_data(x)
+vec_cast.list.xbio_genesets <- function(x, to, ...) {
+    out <- vec_data(x)
+    names(out) <- vapply(
+        out, gs_ids.xbio_geneset,
+        character(1L),
+        USE.NAMES = FALSE
+    )
+    out
+}
 
 #' @export
 vec_cast.xbio_genesets.list <- function(x, to, ...) {
-    if (is.null(terms <- attr(x, "terms"))) {
-        terms <- vapply(x, function(e) {
-            if (is.null(o <- attr(x, "term"))) {
+    if (is.null(ids <- attr(x, "ids"))) {
+        ids <- vapply(x, function(e) {
+            if (is.null(o <- attr(x, "id")) || length(o) != 1L) {
                 NA_character_
             } else {
                 as.character(o)
             }
         }, character(1L), USE.NAMES = FALSE)
-        if (all(is.na(terms))) terms <- NULL
+    } else {
+        ids <- as.character(ids)
+        if (vec_size(x) != vec_size(ids)) {
+            cli::cli_warn(paste(
+                "attribute {.field ids} must be",
+                "the same length of the input list."
+            ))
+            ids <- NULL
+        }
+    }
+    if (is.null(terms <- attr(x, "terms"))) {
+        terms <- vapply(x, function(e) {
+            if (is.null(o <- attr(x, "term")) || length(o) != 1L) {
+                NA_character_
+            } else {
+                as.character(o)
+            }
+        }, character(1L), USE.NAMES = FALSE)
     } else {
         terms <- as.character(terms)
         if (vec_size(x) != vec_size(terms)) {
-            cli::cli_abort(paste(
+            cli::cli_warn(paste(
                 "attribute {.field terms} must be",
                 "the same length of the input list."
             ))
+            terms <- NULL
         }
     }
     if (is.null(descriptions <- attr(x, "descriptions"))) {
         descriptions <- vapply(x, function(e) {
-            if (is.null(o <- attr(x, "description"))) {
+            if (is.null(o <- attr(x, "description")) || length(o) != 1L) {
                 NA_character_
             } else {
                 as.character(o)
             }
         }, character(1L), USE.NAMES = FALSE)
-        if (all(is.na(descriptions))) descriptions <- NULL
     } else {
         descriptions <- as.character(descriptions)
         if (vec_size(x) != vec_size(descriptions)) {
-            cli::cli_abort(paste(
+            cli::cli_warn(paste(
                 "attribute {.field descriptions} must be",
                 "the same length of the input list."
             ))
+            descriptions <- NULL
         }
     }
-    new_genesets(x, terms = terms, descriptions = descriptions)
+    new_genesets(x, ids = ids, terms = terms, descriptions = descriptions)
 }
 
 #' @export
@@ -303,8 +351,7 @@ vec_math.xbio_genesets <- function(.fn, .x, ...) {
 
 #' @export
 `length<-.xbio_genesets` <- function(x, value) {
-    size <- vec_size(x)
-    if (value > size) {
+    if (value > vec_size(x)) {
         cli::cli_abort(
             "Cannot set length greater than the current number of gene sets."
         )

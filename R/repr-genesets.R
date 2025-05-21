@@ -118,11 +118,14 @@ genesets.list <- function(gs, ..., ids = NULL, terms = NULL,
                           descriptions = NULL, `_arg` = NULL) {
     rlang::check_dots_empty()
     if (!is.null(ids)) {
-        ids <- vec_cast(ids, character(), x_arg = "names")
-        if (vec_any_missing(ids) || any(ids == "")) {
-            cli::cli_abort("{.arg ids} cannot be missing or empty.")
+        ids <- vec_cast(ids, character())
+        if (vec_size(gs) != vec_size(ids)) {
+            cli::cli_abort(paste(
+                "{.arg ids} must be",
+                "the same length of the input list {.arg {`_arg`}}."
+            ))
         }
-        names(gs) <- ids
+        attr(gs, "ids") <- terms
     }
     if (!is.null(terms)) {
         terms <- vec_cast(terms, character())
