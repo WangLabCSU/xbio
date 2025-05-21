@@ -243,3 +243,5 @@ gs_clean.xbio_genesets <- function(gs, ...) {
 }
 
 gs_lapply <- function(gs, ...) vec_restore(lapply(vec_data(gs), ...), gs)
+
+gs_vapply <- function(gs, ...) vapply(vec_data(gs), ...)

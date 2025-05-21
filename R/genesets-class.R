@@ -130,7 +130,7 @@ obj_print_data.xbio_genesets <- function(x, geneset_trunc = 6L,
     geneset_before <- ceiling(geneset_trunc / 2L)
     geneset_after <- rev(seq_len(geneset_trunc - geneset_before))
     geneset_before <- seq_len(geneset_before)
-    content <- vapply(x, function(geneset) {
+    content <- gs_vapply(x, function(geneset) {
         geneset <- vec_cast(geneset, character())
         if (vec_size(geneset) > geneset_trunc) {
             geneset <- vec_c(
