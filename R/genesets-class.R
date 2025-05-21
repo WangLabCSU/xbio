@@ -246,9 +246,9 @@ vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
             descriptions = .subset2(keys, "descriptions")
         )
     } else {
-        cli::cli_abort(paste(
-            "Conversion to {.cls genesets} require a data frame",
-            "of 2, 3, or 4 columns"
+        cli::cli_abort(c(
+            "Conversion to {.cls genesets} failed.",
+            "x" = "A data frame with 1 to 4 columns is required."
         ))
     }
 }
