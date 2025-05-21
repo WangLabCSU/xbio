@@ -128,9 +128,9 @@ keggdb_get0 <- function(query, option = NULL) {
 #'
 #' @param link A KEGG organism code (e.g., `"hsa"` for human). A full list is
 #' available via `keggdb("organism")$organism`. This will link database using
-#' gene symbols for the specified organism. Alternatively, a KEGG database name
-#' can be provided to link pathway/disease associations based on database entry
-#' IDs.
+#' gene ENTREZ ID for the specified organism. Alternatively, a KEGG database
+#' name can be provided to link pathway/disease associations based on database
+#' entry IDs.
 #'
 #' the following database name can be linked to **pathway** database:
 #' `r oxford_and(setdiff(KEGGREST::listDatabases(), KEGG_NO_PATHWAY))`.
@@ -208,14 +208,11 @@ kegg_genesets_download <- function(database, organism, link) {
     }
     ids <- sub("^[^:]+:", "", names(ids2features))
     features <- sub("^[^:]+:", "", ids2features)
-    new_data_frame(
-        list(
-            ids = ids,
-            terms = terms[ids],
-            features = features
-        ),
-        class = sprintf("%s_kegg_genesets", pkg_nm())
-    )
+    new_kegg_genesets(list(
+        ids = ids,
+        terms = terms[ids],
+        features = features
+    ))
 }
 
 S3_kegg_genesets <- new_S3_class("xbio_kegg_genesets")
