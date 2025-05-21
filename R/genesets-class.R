@@ -139,7 +139,7 @@ obj_print_data.xbio_genesets <- function(x, geneset_trunc = 6L,
             )
         }
         paste0(geneset, collapse = ", ")
-    }, character(1L), USE.NAMES = FALSE)
+    }, character(1L))
     output <- paste(
         format(ids, justify = "right"),
         format(content, justify = "left"),
