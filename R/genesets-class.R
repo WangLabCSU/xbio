@@ -286,7 +286,7 @@ vec_cast.list.xbio_genesets <- function(x, to, ...) {
 vec_cast.xbio_genesets.list <- function(x, to, ...) {
     if (is.null(ids <- attr(x, "ids"))) {
         ids <- vapply(x, function(e) {
-            if (is.null(o <- attr(x, "id")) || length(o) != 1L) {
+            if (is.null(o <- attr(e, "id")) || length(o) != 1L) {
                 NA_character_
             } else {
                 as.character(o)
@@ -304,7 +304,7 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
     }
     if (is.null(terms <- attr(x, "terms"))) {
         terms <- vapply(x, function(e) {
-            if (is.null(o <- attr(x, "term")) || length(o) != 1L) {
+            if (is.null(o <- attr(e, "term")) || length(o) != 1L) {
                 NA_character_
             } else {
                 as.character(o)
@@ -322,7 +322,7 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
     }
     if (is.null(descriptions <- attr(x, "descriptions"))) {
         descriptions <- vapply(x, function(e) {
-            if (is.null(o <- attr(x, "description")) || length(o) != 1L) {
+            if (is.null(o <- attr(e, "description")) || length(o) != 1L) {
                 NA_character_
             } else {
                 as.character(o)
