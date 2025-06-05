@@ -51,6 +51,7 @@ Collate:
     'db-kegg.R'
     'extendr-wrappers.R'
     'geneset-class.R'
+    'geneset-methods.R'
     'genesets-class.R'
     'genesets-gs.R'
     'genesets-io.R'
