@@ -284,14 +284,8 @@ vec_cast.list.xbio_genesets <- function(x, to, ...) {
 
 #' @export
 vec_cast.xbio_genesets.list <- function(x, to, ...) {
-    if (is.null(ids <- attr(x, "ids"))) {
-        ids <- vapply(x, function(e) {
-            if (is.null(o <- attr(e, "id")) || length(o) != 1L) {
-                NA_character_
-            } else {
-                as.character(o)
-            }
-        }, character(1L), USE.NAMES = FALSE)
+    if (is.null(ids <- attr(x, "ids", exact = TRUE))) {
+        ids <- vapply(x, gs_ids.xbio_geneset, character(1L), USE.NAMES = FALSE)
     } else {
         ids <- as.character(ids)
         if (vec_size(x) != vec_size(ids)) {
@@ -302,14 +296,10 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
             ids <- NULL
         }
     }
-    if (is.null(terms <- attr(x, "terms"))) {
-        terms <- vapply(x, function(e) {
-            if (is.null(o <- attr(e, "term")) || length(o) != 1L) {
-                NA_character_
-            } else {
-                as.character(o)
-            }
-        }, character(1L), USE.NAMES = FALSE)
+    if (is.null(terms <- attr(x, "terms", exact = TRUE))) {
+        terms <- vapply(x, gs_terms.xbio_geneset, character(1L),
+            USE.NAMES = FALSE
+        )
     } else {
         terms <- as.character(terms)
         if (vec_size(x) != vec_size(terms)) {
@@ -320,14 +310,10 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
             terms <- NULL
         }
     }
-    if (is.null(descriptions <- attr(x, "descriptions"))) {
-        descriptions <- vapply(x, function(e) {
-            if (is.null(o <- attr(e, "description")) || length(o) != 1L) {
-                NA_character_
-            } else {
-                as.character(o)
-            }
-        }, character(1L), USE.NAMES = FALSE)
+    if (is.null(descriptions <- attr(x, "descriptions", exact = TRUE))) {
+        descriptions <- vapply(x, gs_descs.xbio_geneset, character(1L),
+            USE.NAMES = FALSE
+        )
     } else {
         descriptions <- as.character(descriptions)
         if (vec_size(x) != vec_size(descriptions)) {
