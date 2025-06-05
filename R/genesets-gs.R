@@ -106,14 +106,14 @@ gs_map.xbio_geneset <- function(gs, annodb, key_source, key_target, ...) {
     if (vec_size(gs) == 0L) return(gs) # styler: off
     out <- AnnotationDbi::mapIds(
         x = annodb,
-        keys = gs,
+        keys = as.character(gs),
         column = key_target,
         keytype = key_source,
         ...
     )
     out <- as.character(out) # out can be a list
     out[is.na(out) | out == ""] <- NA_character_
-    out
+    vec_restore(out, gs)
 }
 
 #' @export
@@ -145,14 +145,14 @@ gs_biomart.xbio_geneset <- function(gs, mart, key_source, key_target, ...) {
     if (vec_size(gs) == 0L) return(gs) # styler: off
     out <- biomaRt::getBM(
         mart = mart,
-        values = gs,
+        values = as.character(gs),
         attributes = key_target,
         filters = key_source,
         ...
     )
     out <- as.character(.subset2(out, key_target))
     out[is.na(out) | out == ""] <- NA_character_
-    out
+    vec_restore(out, gs)
 }
 
 #' @export
