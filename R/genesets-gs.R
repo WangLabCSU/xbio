@@ -16,7 +16,12 @@ gs_ids <- function(gs) UseMethod("gs_ids")
 
 #' @export
 gs_ids.xbio_geneset <- function(gs) {
-    attr(gs, "id", exact = TRUE) %||% NA_character_
+    o <- attr(gs, "id", exact = TRUE)
+    if (is.null(o) || !is.character(o) || length(o) != 1L) {
+        NA_character_
+    } else {
+        o
+    }
 }
 
 #' @export
@@ -30,7 +35,12 @@ gs_terms <- function(gs) UseMethod("gs_terms")
 
 #' @export
 gs_terms.xbio_geneset <- function(gs) {
-    attr(gs, "term", exact = TRUE) %||% NA_character_
+    o <- attr(gs, "term", exact = TRUE)
+    if (is.null(o) || !is.character(o) || length(o) != 1L) {
+        NA_character_
+    } else {
+        o
+    }
 }
 
 #' @export
@@ -44,7 +54,12 @@ gs_descs <- function(gs) UseMethod("gs_descs")
 
 #' @export
 gs_descs.xbio_geneset <- function(gs) {
-    attr(gs, "description", exact = TRUE) %||% NA_character_
+    o <- attr(gs, "description", exact = TRUE)
+    if (is.null(o) || !is.character(o) || length(o) != 1L) {
+        NA_character_
+    } else {
+        o
+    }
 }
 
 #' @export
