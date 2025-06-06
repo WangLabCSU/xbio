@@ -82,33 +82,47 @@ gs_descs.xbio_genesets <- function(gs) {
 #' `gs_biomart()`).
 #' @param key_source A string indicating the keytype used in `gs`.
 #' @param key_target A string indicating the desired target keytype.
+#' @inheritParams AnnotationDbi::mapIds
 #' @param ... Additional arguments passed to
 #' [`mapIds()`][AnnotationDbi::mapIds] or [`getBM()`][biomaRt::getBM].
 #'
 #' @return An object of the same class as `gs`, with mapped gene identifiers.
 #' @export
-gs_map <- function(gs, annodb, key_source, key_target, ...) {
+gs_map <- function(gs, annodb, key_source, key_target,
+                   multiVals = "first", ...) {
     assert_string(key_source, allow_empty = FALSE)
     assert_string(key_target, allow_empty = FALSE)
     # Infer the annodb ----------------------------
     if (is.character(annodb)) {
         check_bioc_installed(annodb)
-        annodb <- getExportedValue(annodb, annodb)
+        annodb <- rlang::try_fetch(
+            getExportedValue(annodb, annodb),
+            error = function(cnd) {
+                cli::cli_abort(
+                    "{.arg annodb} is not a valid {.cls AnnotationDb} package"
+                )
+            }
+        )
     }
-    gs_map <- function(gs, annodb, key_source, key_target, ...) {
+    if (!inherits(annodb, "AnnotationDb")) {
+        cli::cli_abort("{.arg annodb} must be a {.cls AnnotationDb} object")
+    }
+    gs_map <- function(gs, annodb, key_source, key_target, multiVals, ...) {
         UseMethod("gs_map")
     }
-    gs_map(gs, annodb, key_source, key_target, ...)
+    gs_map(gs, annodb, key_source, key_target, multiVals, ...)
 }
 
 #' @export
-gs_map.xbio_geneset <- function(gs, annodb, key_source, key_target, ...) {
+gs_map.xbio_geneset <- function(gs, annodb, key_source, key_target,
+                                multiVals = "first", ...) {
     if (vec_size(gs) == 0L) return(gs) # styler: off
     out <- AnnotationDbi::mapIds(
         x = annodb,
         keys = as.character(gs),
         column = key_target,
         keytype = key_source,
+        multiVals = multiVals,
         ...
     )
     out <- as.character(out) # out can be a list
@@ -117,10 +131,35 @@ gs_map.xbio_geneset <- function(gs, annodb, key_source, key_target, ...) {
 }
 
 #' @export
-gs_map.xbio_genesets <- function(gs, annodb, ...) {
+gs_map.xbio_genesets <- function(gs, annodb, key_source, key_target,
+                                 multiVals = "first", ...) {
     if (vec_size(gs) == 0L) return(gs) # styler: off
-    # mapping the the genes in genesets into keytype
-    gs_lapply(gs, gs_map.xbio_geneset, annodb = annodb, ...)
+    # we'll filter multiVals manually
+    if (is.character(multiVals) &&
+        length(multiVals) == 1L &&
+        multiVals == "filter") {
+        filter <- TRUE
+        multiVals <- "list"
+    } else {
+        filter <- FALSE
+    }
+    # mapping the the genes in genesets into key_target
+    mapped <- AnnotationDbi::mapIds(
+        x = annodb,
+        keys = list_unchop(lapply(unname(vec_data(gs)), as.character)),
+        column = key_target,
+        keytype = key_source,
+        multiVals = multiVals,
+        ...
+    )
+    mapped <- as.list(mapped)
+    out <- .mapply(function(new, old) {
+        if (filter) new <- new[list_sizes(new) == 1L]
+        new <- as.character(new)
+        new[is.na(new) | new == ""] <- NA_character_
+        vec_restore(new, old)
+    }, list(new = vec_chop(mapped, sizes = list_sizes(gs)), old = gs), NULL)
+    vec_restore(out, gs)
 }
 
 #' @param mart A [`Mart`][biomaRt::useMart] object.
@@ -185,8 +224,8 @@ gs_biomart.xbio_genesets <- function(gs, ...) {
 #' @export
 gs_filter <- function(gs, min_size = NULL, max_size = NULL) {
     assert_s3_class(gs, "xbio_genesets")
-    assert_number_whole(min_size, min = 1, allow_null = TRUE)
-    assert_number_whole(max_size, min = 1, allow_null = TRUE)
+    assert_number_whole(min_size, min = 0, allow_null = TRUE)
+    assert_number_whole(max_size, min = 0, allow_null = TRUE)
     if (is.null(min_size) && is.null(max_size)) {
         return(gs)
     }

@@ -5,7 +5,7 @@
 \alias{gs_biomart}
 \title{Map a geneset or genesets object to a different keytype}
 \usage{
-gs_map(gs, annodb, key_source, key_target, ...)
+gs_map(gs, annodb, key_source, key_target, multiVals = "first", ...)
 
 gs_biomart(gs, mart, key_source, key_target, ...)
 }
@@ -18,6 +18,19 @@ annotation package.}
 \item{key_source}{A string indicating the keytype used in \code{gs}.}
 
 \item{key_target}{A string indicating the desired target keytype.}
+
+\item{multiVals}{What should \code{mapIds} do when there are multiple values         
+  that could be returned?  Options include:
+    \describe{
+      \item{first:}{This value means that when there are multiple matches only the 1st thing that comes back will be returned. This is the default behavior}
+      \item{list:}{This will just returns a list object to the end user}
+      \item{filter:}{This will remove all elements that contain multiple matches and will therefore return a shorter vector than what came in whenever some of the keys match more than one value}
+      \item{asNA:}{This will return an NA value whenever there are multiple matches}
+      \item{CharacterList:}{This just returns a SimpleCharacterList object}
+      \item{FUN:}{You can also supply a function to the \code{multiVals} argument for custom behaviors.  The function must take a single argument and return a single value.  This function will be applied to all the elements and will serve a 'rule' that for which thing to keep when there is more than one element.  So for example this example function will always grab the last element in each result: \code{ last <- function(x){x[[length(x)]]} }
+      }
+    }
+  }
 
 \item{...}{Additional arguments passed to
 \code{\link[AnnotationDbi:AnnotationDb-class]{mapIds()}} or \code{\link[biomaRt:getBM]{getBM()}}.}

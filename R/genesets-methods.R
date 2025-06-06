@@ -167,7 +167,7 @@ genesets.character <- function(gs, ..., verbose = TRUE, `_arg` = NULL) {
                 )
             }
         )
-        if (inherits(orgdb, "OrgDb")) {
+        if (!inherits(orgdb, "OrgDb")) {
             cli::cli_abort(
                 "{.arg {`_arg`}} is not a valid {.cls OrgDb} package"
             )
