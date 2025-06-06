@@ -19,9 +19,6 @@ repr_metrics(metrics, ..., `_arg` = NULL)
 \item{metrics}{A named numeric ranked metrics.}
 
 \item{...}{Additional arguments passed to the method.}
-
-\item{_arg}{A single string of the argument name for \code{gs}, used by the
-internal to provide better message.}
 }
 \value{
 A named numeric vector with class \code{xbio_metrics}.

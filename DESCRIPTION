@@ -55,6 +55,7 @@ Collate:
     'genesets-class.R'
     'genesets-gs.R'
     'genesets-io.R'
+    'genesets-methods.R'
     'import-standalone-assert.R'
     'import-standalone-obj-type.R'
     'import-standalone-pkg.R'

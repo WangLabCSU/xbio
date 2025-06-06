@@ -41,9 +41,6 @@ repr_matrix(matrix, ..., `_arg` = NULL)
 
 \item{...}{Additional arguments passed to the method.}
 
-\item{_arg}{A single string of the argument name for \code{gs}, used by the
-internal to provide better message.}
-
 \item{assay}{Integer scalar or string indicating which assay to use.}
 
 \item{dimred}{String or integer scalar specifying the existing dimensionality

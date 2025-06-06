@@ -111,10 +111,9 @@ vec_cast.GeneSet.xbio_geneset <- function(x, to, ...,
     slots <- slots[vapply(slots, is.null, logical(1L), USE.NAMES = FALSE)]
     rlang::inject(GSEABase::GeneSet(
         as.character(x),
-        setName = attr(x, "id", exact = TRUE) %||% NA_character_,
-        shortDescription = attr(x, "term", exact = TRUE) %||% NA_character_,
-        longDescription = attr(x, "description", exact = TRUE) %||%
-            NA_character_,
+        setName = gs_ids(x),
+        shortDescription = gs_terms(x),
+        longDescription = gs_descs(x),
         !!!slots
     ))
 }
