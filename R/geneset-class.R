@@ -66,7 +66,7 @@ vec_cast.character.xbio_geneset <- function(x, to, ...,
 }
 
 #' @export
-as.character.xbio_geneset <- function(x) vec_cast(x, geneset())
+as.character.xbio_geneset <- function(x, ...) vec_cast(x, character())
 
 #' @export
 vec_cast.xbio_geneset.character <- function(x, to, ...,

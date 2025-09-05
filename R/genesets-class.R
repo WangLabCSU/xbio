@@ -16,7 +16,7 @@ new_genesets <- function(genesets = list(),
             ))
         }
     }
-    if (!vec_any_missing(ids)) ids <- NULL
+    if (all(vec_detect_missing(ids))) ids <- NULL
     if (!is.null(terms)) {
         terms <- vec_cast(terms, character(), x_arg = arg_terms)
         if (vec_size(terms) != vec_size(genesets)) {
@@ -25,7 +25,7 @@ new_genesets <- function(genesets = list(),
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
-        if (!vec_any_missing(terms)) terms <- NULL
+        if (all(vec_detect_missing(terms))) terms <- NULL
     }
     if (!is.null(descriptions)) {
         descriptions <- vec_cast(
@@ -38,7 +38,7 @@ new_genesets <- function(genesets = list(),
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
-        if (!vec_any_missing(descriptions)) descriptions <- NULL
+        if (all(vec_detect_missing(descriptions))) descriptions <- NULL
     }
     genesets <- .mapply(
         new_geneset, list(
@@ -255,7 +255,7 @@ vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
 
 #' @export
 vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
-    vec_cast.xbio_genesets.data.frame(
+    vec_cast(
         new_data_frame(
             list(
                 ids = .subset2(x, "ids"),
@@ -264,7 +264,8 @@ vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
                 genesets = .subset2(x, "features")
             )
         ),
-        to, ...
+        to,
+        ...
     )
 }
 
@@ -273,13 +274,7 @@ as.data.frame.xbio_genesets <- function(x, ...) vec_cast(x, new_data_frame())
 
 #' @export
 vec_cast.list.xbio_genesets <- function(x, to, ...) {
-    out <- vec_data(x)
-    names(out) <- vapply(
-        out, gs_ids.xbio_geneset,
-        character(1L),
-        USE.NAMES = FALSE
-    )
-    out
+    vec_set_names(vec_data(x), gs_ids(x))
 }
 
 #' @export
