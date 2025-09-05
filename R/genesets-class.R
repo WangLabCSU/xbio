@@ -82,7 +82,7 @@ names.xbio_genesets <- function(x) gs_ids(x)
 #' @export
 `[.xbio_genesets` <- function(x, i, ...) {
     if (!missing(...)) {
-        abort("Can't index genesets on dimensions greater than 1.")
+        cli::cli_abort("Can't index genesets on dimensions greater than 1.")
     }
     index <- vec_as_location(i,
         n = vec_size(x), names = gs_ids(x),
