@@ -66,6 +66,9 @@ vec_cast.character.xbio_geneset <- function(x, to, ...,
 }
 
 #' @export
+as.character.xbio_geneset <- function(x) vec_cast(x, geneset())
+
+#' @export
 vec_cast.xbio_geneset.character <- function(x, to, ...,
                                             x_arg = caller_arg(x),
                                             to_arg = "",
@@ -82,7 +85,7 @@ vec_cast.xbio_geneset.GeneSet <- function(x, to, ...,
     attrs <- lapply(slots, function(nm) methods::slot(x, nm))
     names(attrs) <- slots
     rlang::inject(geneset(
-        attrs$setName, 
+        attrs$setName,
         id = attrs$geneIds,
         term = attrs$shortDescription,
         description = attrs$longDescription,

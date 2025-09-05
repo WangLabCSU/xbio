@@ -16,7 +16,7 @@ new_genesets <- function(genesets = list(),
             ))
         }
     }
-    if (all(is.na(ids))) ids <- NULL
+    if (!vec_any_missing(ids)) ids <- NULL
     if (!is.null(terms)) {
         terms <- vec_cast(terms, character(), x_arg = arg_terms)
         if (vec_size(terms) != vec_size(genesets)) {
@@ -25,7 +25,7 @@ new_genesets <- function(genesets = list(),
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
-        if (all(is.na(terms))) terms <- NULL
+        if (!vec_any_missing(terms)) terms <- NULL
     }
     if (!is.null(descriptions)) {
         descriptions <- vec_cast(
@@ -38,7 +38,7 @@ new_genesets <- function(genesets = list(),
                 "the same length of {.arg {arg_genesets}} ({vec_size(genesets)})"
             ))
         }
-        if (all(is.na(descriptions))) descriptions <- NULL
+        if (!vec_any_missing(descriptions)) descriptions <- NULL
     }
     genesets <- .mapply(
         new_geneset, list(
