@@ -39,6 +39,18 @@
 #' @export
 repr_genesets <- function(gs, ..., min_size = NULL, max_size = NULL) {
     out <- genesets(gs, ...)
-    out <- gs_clean(out)
+    # The return value of a calling handler is ignored because the code
+    # continues to execute after the handler completes; where would the return
+    # value go? That means that calling handlers are only useful for their
+    # side-effects.
+    out <- rlang::try_fetch(
+        gs_clean(out),
+        gs_clean_message = function(cnd) {
+            # Promote message to warning
+            cli::cli_warn(conditionMessage(cnd))
+            rlang::cnd_muffle(cnd)
+            rlang::zap()
+        }
+    )
     gs_filter(out, min_size = min_size, max_size = max_size)
 }

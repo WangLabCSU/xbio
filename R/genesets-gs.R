@@ -284,7 +284,7 @@ gs_clean.xbio_genesets <- function(gs, ...) {
                 "Removing {sum(!keep)} invalid gene set{?s}",
                 "(all are empty string or missing value)"
             )
-        ))
+        ), class = "gs_clean_message")
         out <- out[keep]
     }
     out

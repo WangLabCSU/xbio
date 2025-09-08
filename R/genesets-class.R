@@ -5,9 +5,7 @@ new_genesets <- function(genesets = list(),
                          arg_ids = caller_arg(ids),
                          arg_terms = caller_arg(terms),
                          arg_descriptions = caller_arg(descriptions)) {
-    if (is.null(ids)) {
-        ids <- names(genesets)
-    } else {
+    if (!is.null(ids)) {
         ids <- vec_cast(ids, character(), x_arg = arg_ids)
         if (vec_size(ids) != vec_size(genesets)) {
             cli::cli_abort(paste(
@@ -17,6 +15,10 @@ new_genesets <- function(genesets = list(),
         }
     }
     if (all(vec_detect_missing(ids))) ids <- NULL
+    if (is.null(ids)) {
+        ids <- names(genesets)
+        if (all(vec_detect_missing(ids))) ids <- NULL
+    }
     if (!is.null(terms)) {
         terms <- vec_cast(terms, character(), x_arg = arg_terms)
         if (vec_size(terms) != vec_size(genesets)) {
@@ -284,7 +286,7 @@ vec_cast.list.xbio_genesets <- function(x, to, ...) {
 #' @export
 vec_cast.xbio_genesets.list <- function(x, to, ...) {
     if (is.null(ids <- attr(x, "ids", exact = TRUE))) {
-        ids <- vapply(x, gs_ids.xbio_geneset, character(1L), USE.NAMES = FALSE)
+        ids <- gs_ids(x)
     } else {
         ids <- as.character(ids)
         if (vec_size(x) != vec_size(ids)) {
@@ -296,9 +298,7 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
         }
     }
     if (is.null(terms <- attr(x, "terms", exact = TRUE))) {
-        terms <- vapply(x, gs_terms.xbio_geneset, character(1L),
-            USE.NAMES = FALSE
-        )
+        terms <- gs_terms(x)
     } else {
         terms <- as.character(terms)
         if (vec_size(x) != vec_size(terms)) {
@@ -310,9 +310,7 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
         }
     }
     if (is.null(descriptions <- attr(x, "descriptions", exact = TRUE))) {
-        descriptions <- vapply(x, gs_descs.xbio_geneset, character(1L),
-            USE.NAMES = FALSE
-        )
+        descriptions <- gs_descs(x)
     } else {
         descriptions <- as.character(descriptions)
         if (vec_size(x) != vec_size(descriptions)) {
@@ -337,9 +335,10 @@ vec_math.xbio_genesets <- function(.fn, .x, ...) {
 #' @export
 `length<-.xbio_genesets` <- function(x, value) {
     if (value > vec_size(x)) {
-        cli::cli_abort(
-            "Cannot set length greater than the current number of gene sets."
-        )
+        cli::cli_abort(c(
+            "Cannot set {.arg length} to {.val {value}}",
+            i = "it exceeds the number of available gene sets ({.val {vec_size(x)}})."
+        ))
     }
     vec_slice(x, seq_len(value))
 }
