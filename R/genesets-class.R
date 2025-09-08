@@ -41,7 +41,8 @@ new_genesets <- function(genesets = list(),
         if (all(vec_detect_missing(descriptions))) descriptions <- NULL
     }
     genesets <- .mapply(
-        new_geneset, list(
+        new_geneset,
+        list(
             geneset = genesets,
             id = ids %||% rep_len(list(NULL), vec_size(genesets)),
             term = terms %||% rep_len(list(NULL), vec_size(genesets)),
@@ -274,7 +275,10 @@ as.data.frame.xbio_genesets <- function(x, ...) vec_cast(x, new_data_frame())
 
 #' @export
 vec_cast.list.xbio_genesets <- function(x, to, ...) {
-    vec_set_names(vec_data(x), gs_ids(x))
+    ids <- gs_ids(x)
+    out <- vec_data(x)
+    if (all(vec_detect_missing(ids))) ids <- NULL
+    vec_set_names(out, ids)
 }
 
 #' @export

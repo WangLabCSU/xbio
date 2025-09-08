@@ -81,7 +81,7 @@ genesets.data.frame <- function(gs, ..., select = NULL, `_arg` = NULL) {
         if (length(select) == 0L || length(select) > 4L) {
             cli::cli_abort("{.arg select} must be of length [1, 4].")
         }
-        gs <- gs[select]
+        gs <- vec_slice(gs, select)
     }
     vec_cast(gs, new_genesets())
 }

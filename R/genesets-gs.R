@@ -135,9 +135,7 @@ gs_map.xbio_genesets <- function(gs, annodb, key_source, key_target,
                                  multiVals = "first", ...) {
     if (vec_size(gs) == 0L) return(gs) # styler: off
     # we'll filter multiVals manually
-    if (is.character(multiVals) &&
-        length(multiVals) == 1L &&
-        multiVals == "filter") {
+    if (rlang::is_string(multiVals, "filter")) {
         filter <- TRUE
         multiVals <- "list"
     } else {
@@ -146,7 +144,7 @@ gs_map.xbio_genesets <- function(gs, annodb, key_source, key_target,
     # mapping the the genes in genesets into key_target
     mapped <- AnnotationDbi::mapIds(
         x = annodb,
-        keys = list_unchop(lapply(unname(vec_data(gs)), as.character)),
+        keys = list_unchop(lapply(vec_data(gs), as.character)),
         column = key_target,
         keytype = key_source,
         multiVals = multiVals,
