@@ -327,7 +327,17 @@ as.list.xbio_genesets <- function(x, ...) vec_cast(x, list())
 
 #' @export
 vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
-    vec_cast(vec_cast(x, new_data_frame()), to, ...)
+    vec_cast(
+        new_data_frame(
+            list(
+                ids = .subset2(x, "ids"),
+                terms = .subset2(x, "terms"),
+                descriptions = rep_len(NA_character_, vec_size(x)),
+                genesets = .subset2(x, "features")
+            )
+        ),
+        to, ...
+    )
 }
 
 #' @export

@@ -217,23 +217,6 @@ new_kegg_genesets <- function(x, ...) {
 
 S3_kegg_genesets <- new_S3_class("xbio_kegg_genesets")
 
-#' @export
-vec_cast.data.frame.xbio_kegg_genesets <- function(x, to, ...) {
-    new_data_frame(
-        list(
-            ids = .subset2(x, "ids"),
-            terms = .subset2(x, "terms"),
-            descriptions = rep_len(NA_character_, vec_size(x)),
-            genesets = .subset2(x, "features")
-        )
-    )
-}
-
-#' @export
-as.data.frame.xbio_kegg_genesets <- function(x, ...) {
-    vec_cast(x, new_data_frame())
-}
-
 KEGG_NO_PATHWAY <- c(
     "pathway", "disease", "brite", "genome", "vg", "ag",
     "dgroup", "environ", "genes", "ligand", "kegg"
