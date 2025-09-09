@@ -127,5 +127,5 @@ test_that("length<- truncates the object", {
 test_that("length<- errors if increasing length", {
     gs <- list(a = c("A", "B"))
     obj <- new_genesets(gs)
-    expect_error(length(obj) <- 2, "Cannot set length greater")
+    expect_snapshot_error(length(obj) <- 2)
 })

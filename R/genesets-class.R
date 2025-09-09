@@ -188,6 +188,16 @@ vec_ptype2.list.xbio_genesets <- function(x, y, ...) {
     y
 }
 
+#' @export
+vec_ptype2.xbio_genesets.xbio_kegg_genesets <- function(x, y, ...) {
+    x
+}
+
+#' @export
+vec_ptype2.xbio_kegg_genesets.xbio_genesets <- function(x, y, ...) {
+    y
+}
+
 ##################################################
 #' @export
 vec_cast.xbio_genesets.xbio_genesets <- function(x, to, ...) {
@@ -257,22 +267,6 @@ vec_cast.xbio_genesets.data.frame <- function(x, to, ...) {
 }
 
 #' @export
-vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
-    vec_cast(
-        new_data_frame(
-            list(
-                ids = .subset2(x, "ids"),
-                terms = .subset2(x, "terms"),
-                descriptions = rep_len(NA_character_, vec_size(x)),
-                genesets = .subset2(x, "features")
-            )
-        ),
-        to,
-        ...
-    )
-}
-
-#' @export
 as.data.frame.xbio_genesets <- function(x, ...) vec_cast(x, new_data_frame())
 
 #' @export
@@ -286,7 +280,7 @@ vec_cast.list.xbio_genesets <- function(x, to, ...) {
 #' @export
 vec_cast.xbio_genesets.list <- function(x, to, ...) {
     if (is.null(ids <- attr(x, "ids", exact = TRUE))) {
-        ids <- gs_ids(x)
+        ids <- vapply(x, gs_ids.xbio_geneset, character(1L), USE.NAMES = FALSE)
     } else {
         ids <- as.character(ids)
         if (vec_size(x) != vec_size(ids)) {
@@ -298,7 +292,9 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
         }
     }
     if (is.null(terms <- attr(x, "terms", exact = TRUE))) {
-        terms <- gs_terms(x)
+        terms <- vapply(x, gs_terms.xbio_geneset, character(1L),
+            USE.NAMES = FALSE
+        )
     } else {
         terms <- as.character(terms)
         if (vec_size(x) != vec_size(terms)) {
@@ -310,7 +306,9 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
         }
     }
     if (is.null(descriptions <- attr(x, "descriptions", exact = TRUE))) {
-        descriptions <- gs_descs(x)
+        descriptions <- vapply(x, gs_descs.xbio_geneset, character(1L),
+            USE.NAMES = FALSE
+        )
     } else {
         descriptions <- as.character(descriptions)
         if (vec_size(x) != vec_size(descriptions)) {
@@ -326,6 +324,11 @@ vec_cast.xbio_genesets.list <- function(x, to, ...) {
 
 #' @export
 as.list.xbio_genesets <- function(x, ...) vec_cast(x, list())
+
+#' @export
+vec_cast.xbio_genesets.xbio_kegg_genesets <- function(x, to, ...) {
+    vec_cast(vec_cast(x, new_data_frame()), to, ...)
+}
 
 #' @export
 vec_math.xbio_genesets <- function(.fn, .x, ...) {
